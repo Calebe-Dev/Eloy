@@ -19,6 +19,6 @@
 	};
 </script>
 
-<section class={`py-20 lg:py-32 ${backgrounds[background]} ${className}`}>
+<section class={`py-16 md:py-24 lg:py-32 ${backgrounds[background]} ${className}`}>
 	{@render children()}
 </section>
