@@ -2,10 +2,9 @@
 	import { onMount } from 'svelte';
 	import CounterAnimation from '../ui/CounterAnimation.svelte';
 
-	let pinWrapper: HTMLElement;
+	let sectionElement: HTMLElement;
 	let scrollProgress = $state(0);
-	let activeIndex = $state(0);
-	let shouldAnimate = $state(false);
+	let isInView = $state(false);
 
 	const stats = [
 		{
@@ -15,7 +14,7 @@
 			subtitle: 'Taxa de satisfação:',
 			highlight: '94%',
 			color: 'from-blue-500 to-cyan-500',
-			icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'
+			bgGlow: 'from-blue-500/20 to-cyan-500/20'
 		},
 		{
 			value: 3,
@@ -24,7 +23,7 @@
 			subtitle: 'Em comparação com atendimento manual',
 			highlight: null,
 			color: 'from-purple-500 to-pink-500',
-			icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z'
+			bgGlow: 'from-purple-500/20 to-pink-500/20'
 		},
 		{
 			value: 340,
@@ -33,137 +32,170 @@
 			subtitle: 'Redução em tempo de resposta',
 			highlight: null,
 			color: 'from-green-500 to-emerald-500',
-			icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6'
+			bgGlow: 'from-green-500/20 to-emerald-500/20'
 		}
 	];
 
 	onMount(() => {
-		const recalc = () => {
-			if (!pinWrapper) return;
-
-			const rect = pinWrapper.getBoundingClientRect();
-			const start = rect.top + window.scrollY;
-			const end = start + pinWrapper.offsetHeight;
-			const centerDocY = window.scrollY + window.innerHeight / 2;
-
-			const total = end - start;
-			const passed = Math.min(Math.max(centerDocY - start, 0), total);
-			scrollProgress = passed / total;
-
-			if (scrollProgress < 0.33) {
-				activeIndex = 0;
-			} else if (scrollProgress < 0.66) {
-				activeIndex = 1;
-			} else {
-				activeIndex = 2;
-			}
-
-			shouldAnimate = scrollProgress > 0.1;
+		const handleScroll = () => {
+			if (!sectionElement) return;
+			
+			const rect = sectionElement.getBoundingClientRect();
+			const windowHeight = window.innerHeight;
+			
+			// Calcula se está visível
+			isInView = rect.top < windowHeight && rect.bottom > 0;
+			
+			// Calcula progresso quando está no centro da tela
+			const centerY = rect.top + rect.height / 2;
+			const centerScreen = windowHeight / 2;
+			const distance = Math.abs(centerY - centerScreen);
+			const maxDistance = windowHeight;
+			
+			scrollProgress = Math.max(0, Math.min(1, 1 - (distance / maxDistance)));
 		};
 
-		recalc();
-		window.addEventListener('scroll', recalc, { passive: true });
-		window.addEventListener('resize', recalc);
-
-		return () => {
-			window.removeEventListener('scroll', recalc);
-			window.removeEventListener('resize', recalc);
-		};
+		handleScroll();
+		window.addEventListener('scroll', handleScroll, { passive: true });
+		return () => window.removeEventListener('scroll', handleScroll);
 	});
 </script>
 
-<div class="w-full relative bg-gradient-to-b from-gray-50 via-white to-gray-50">
-	<div bind:this={pinWrapper} class="relative" style="height: 300vh;">
-		<div class="sticky top-0 left-0 w-full h-screen overflow-hidden">
-			<div class="absolute inset-0 pointer-events-none">
-				<div class="absolute inset-0 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-20"></div>
-				
-				<div 
-					class="absolute top-1/4 -left-32 w-80 h-80 rounded-full blur-3xl transition-all duration-1000"
-					style="background: linear-gradient(to bottom right, {activeIndex === 0 ? 'rgb(59, 130, 246, 0.15), rgb(6, 182, 212, 0.15)' : activeIndex === 1 ? 'rgb(168, 85, 247, 0.15), rgb(236, 72, 153, 0.15)' : 'rgb(34, 197, 94, 0.15), rgb(16, 185, 129, 0.15)'});"
-				></div>
-				<div 
-					class="absolute bottom-1/4 -right-32 w-80 h-80 rounded-full blur-3xl transition-all duration-1000"
-					style="background: linear-gradient(to bottom right, {activeIndex === 0 ? 'rgb(6, 182, 212, 0.15), rgb(59, 130, 246, 0.15)' : activeIndex === 1 ? 'rgb(236, 72, 153, 0.15), rgb(168, 85, 247, 0.15)' : 'rgb(16, 185, 129, 0.15), rgb(34, 197, 94, 0.15)'});"
-				></div>
-			</div>
-			
-			<div class="absolute top-0 left-0 w-full h-screen flex items-center justify-center">
-				<div class="max-w-6xl mx-auto px-6 w-full">
-					<div class="text-center mb-12 md:mb-16">
-						<h2 class="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-4 tracking-tight">Números que Falam</h2>
-						<p class="text-xl md:text-2xl text-gray-500 font-light">Resultados reais de quem já confia no Eloi</p>
-						
-						<div class="flex items-center justify-center gap-2 mt-8">
-							{#each stats as _, i}
-								<div class="h-1.5 rounded-full transition-all duration-500" style="width: {activeIndex === i ? '60px' : '30px'}; background: {activeIndex === i ? 'linear-gradient(to right, ' + (i === 0 ? 'rgb(59, 130, 246), rgb(6, 182, 212)' : i === 1 ? 'rgb(168, 85, 247), rgb(236, 72, 153)' : 'rgb(34, 197, 94), rgb(16, 185, 129)') + ')' : '#e5e7eb'};"></div>
-							{/each}
-						</div>
-					</div>
+<section class="relative py-24 md:py-32 lg:py-40 bg-gradient-to-b from-gray-50 via-white to-gray-50 overflow-hidden">
+	<!-- Background decorativo -->
+	<div class="absolute inset-0">
+		<!-- Grid animado -->
+		<div class="absolute inset-0 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-20"></div>
+		
+		<!-- Orbs de fundo animados com scroll -->
+		<div 
+			class="absolute top-1/4 -left-48 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-cyan-400/10 rounded-full blur-3xl transition-all duration-1000"
+			style="transform: translateX({scrollProgress * 100}px) scale({0.8 + scrollProgress * 0.4});"
+		></div>
+		<div 
+			class="absolute bottom-1/4 -right-48 w-96 h-96 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-full blur-3xl transition-all duration-1000"
+			style="transform: translateX({scrollProgress * -100}px) scale({0.8 + scrollProgress * 0.4});"
+		></div>
+	</div>
 
-					<div class="relative w-full" style="min-height: 500px;">
-						{#each stats as stat, index}
-							<div class="absolute inset-0 flex items-center justify-center transition-all duration-1000 ease-out" style="opacity: {activeIndex === index ? 1 : 0}; transform: translateX({activeIndex === index ? 0 : activeIndex > index ? -100 : 100}px) scale({activeIndex === index ? 1 : 0.9}); filter: blur({activeIndex === index ? 0 : 8}px); pointer-events: {activeIndex === index ? 'auto' : 'none'};">
-								<div class="w-full max-w-2xl">
-									<div class="relative group">
-										<div class="absolute -inset-1 bg-gradient-to-r {stat.color} rounded-[3rem] opacity-20 blur-xl"></div>
-										<div class="relative bg-white rounded-[3rem] p-10 md:p-16 border border-gray-200">
-											<div class="text-center space-y-8">
-												<div class="relative">
-													{#if shouldAnimate && activeIndex === index}
-														<div class="font-bold bg-gradient-to-r {stat.color} bg-clip-text text-transparent leading-none" style="font-size: clamp(5rem, 15vw, 12rem);">
-															<CounterAnimation target={stat.value} suffix={stat.suffix} delay={200} />
-														</div>
-													{:else}
-														<div class="font-bold bg-gradient-to-r {stat.color} bg-clip-text text-transparent leading-none" style="font-size: clamp(5rem, 15vw, 12rem);">0{stat.suffix}</div>
-													{/if}
-													<div class="absolute -bottom-4 left-1/2 -translate-x-1/2 h-1.5 bg-gradient-to-r {stat.color} rounded-full transition-all duration-1000" style="width: {activeIndex === index ? '120px' : '0px'};"></div>
-												</div>
-												<div class="space-y-3">
-													<h3 class="text-2xl md:text-3xl lg:text-4xl font-semibold text-gray-900 leading-tight">{stat.title}</h3>
-													<p class="text-lg md:text-xl text-gray-600 leading-relaxed">{stat.subtitle}{#if stat.highlight}<span class="font-bold bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent ml-1">{stat.highlight}</span>{/if}</p>
-												</div>
-												<div class="pt-4">
-													<div class="w-16 h-16 mx-auto bg-gradient-to-r {stat.color} rounded-2xl flex items-center justify-center shadow-lg shadow-gray-300/50">
-														<svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={stat.icon}></path></svg>
-													</div>
-												</div>
-											</div>
+	<div bind:this={sectionElement} class="relative max-w-7xl mx-auto px-6">
+		<!-- Header -->
+		<div 
+			class="text-center mb-16 md:mb-24 transition-all duration-1000 ease-out"
+			style="
+				opacity: {Math.min(1, scrollProgress * 2)};
+				transform: translateY({Math.max(0, 40 - scrollProgress * 50)}px);
+			"
+		>
+			<h2 class="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-4 tracking-tight">
+				Números que Falam
+			</h2>
+			<p class="text-xl md:text-2xl text-gray-500 font-light max-w-2xl mx-auto">
+				Resultados reais de quem já confia no Eloi
+			</p>
+		</div>
+
+		<!-- Stats Grid -->
+		<div class="grid md:grid-cols-3 gap-6 md:gap-8">
+			{#each stats as stat, index}
+				<div 
+					class="relative transition-all duration-1000 ease-out"
+					style="
+						opacity: {Math.min(1, Math.max(0, (scrollProgress - index * 0.1) * 2.5))};
+						transform: translateY({Math.max(0, 60 - scrollProgress * 80)}px) scale({0.9 + Math.min(0.1, scrollProgress * 0.15)});
+					"
+				>
+					<!-- Card com efeito de brilho -->
+					<div class="group relative h-full">
+						<!-- Glow effect -->
+						<div 
+							class="absolute -inset-0.5 bg-gradient-to-r {stat.color} rounded-[2rem] opacity-0 group-hover:opacity-20 blur transition-all duration-500"
+							style="opacity: {scrollProgress * 0.15};"
+						></div>
+						
+						<!-- Card principal -->
+						<div class="relative bg-white rounded-[2rem] p-8 md:p-10 h-full border border-gray-200 hover:border-gray-300 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
+							<!-- Badge decorativo no canto -->
+							<div 
+								class="absolute top-6 right-6 w-20 h-20 bg-gradient-to-br {stat.bgGlow} rounded-full blur-2xl transition-all duration-1000"
+								style="opacity: {scrollProgress};"
+							></div>
+
+							<div class="relative space-y-6 text-center">
+								<!-- Número gigante com counter -->
+								<div class="relative">
+									{#if isInView && scrollProgress > 0.3}
+										<div 
+											class="text-7xl md:text-8xl lg:text-9xl font-bold bg-gradient-to-r {stat.color} bg-clip-text text-transparent leading-none transition-all duration-1000"
+											style="transform: scale({0.8 + scrollProgress * 0.2});"
+										>
+											<CounterAnimation 
+												target={stat.value} 
+												suffix={stat.suffix}
+												delay={index * 200}
+											/>
 										</div>
+									{:else}
+										<div 
+											class="text-7xl md:text-8xl lg:text-9xl font-bold bg-gradient-to-r {stat.color} bg-clip-text text-transparent leading-none"
+										>
+											0{stat.suffix}
+										</div>
+									{/if}
+									
+									<!-- Linha decorativa -->
+									<div 
+										class="absolute -bottom-2 left-1/2 -translate-x-1/2 h-1 bg-gradient-to-r {stat.color} rounded-full transition-all duration-1000"
+										style="width: {scrollProgress * 100}px; max-width: 120px;"
+									></div>
+								</div>
+
+								<!-- Título -->
+								<div class="space-y-2 pt-4">
+									<h3 class="text-xl md:text-2xl font-semibold text-gray-900 leading-snug">
+										{stat.title}
+									</h3>
+									
+									<!-- Subtítulo -->
+									<p class="text-base md:text-lg text-gray-600 leading-relaxed">
+										{stat.subtitle}
+										{#if stat.highlight}
+											<span class="font-bold bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent ml-1">
+												{stat.highlight}
+											</span>
+										{/if}
+									</p>
+								</div>
+
+								<!-- Ícone decorativo -->
+								<div class="pt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+									<div class="w-12 h-12 mx-auto bg-gradient-to-r {stat.color} rounded-2xl flex items-center justify-center shadow-lg">
+										<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+										</svg>
 									</div>
 								</div>
 							</div>
-						{/each}
-					</div>
-
-					<div class="absolute bottom-20 left-1/2 -translate-x-1/2 flex flex-col items-center gap-6">
-						<div class="flex gap-3">
-							{#each stats as stat, i}
-								<div class="relative transition-all duration-300" style="transform: scale({activeIndex === i ? 1.3 : 1});" role="presentation">
-									<div class="w-3 h-3 rounded-full transition-all duration-300" style="background: {activeIndex === i ? 'linear-gradient(to right, ' + (i === 0 ? 'rgb(59, 130, 246), rgb(6, 182, 212)' : i === 1 ? 'rgb(168, 85, 247), rgb(236, 72, 153)' : 'rgb(34, 197, 94), rgb(16, 185, 129)') + ')' : '#d1d5db'};"></div>
-								</div>
-							{/each}
 						</div>
-						{#if scrollProgress < 0.1}
-							<div class="transition-opacity duration-1000" style="opacity: {1 - scrollProgress * 10};">
-								<div class="flex flex-col items-center gap-2 text-gray-400 text-sm">
-									<span class="uppercase tracking-wider">Role para ver mais</span>
-									<svg class="w-5 h-5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
-								</div>
-							</div>
-						{/if}
 					</div>
-
-					{#if scrollProgress > 0.7}
-						<div class="absolute bottom-8 left-1/2 -translate-x-1/2 transition-all duration-1000" style="opacity: {Math.min(1, (scrollProgress - 0.7) * 3)};">
-							<div class="inline-flex items-center gap-3 px-6 py-3 bg-white/80 backdrop-blur-sm rounded-full border border-gray-200 shadow-lg">
-								<div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-								<p class="text-gray-700 font-medium text-sm md:text-base">Junte-se a mais de <span class="font-bold text-blue-600">500+ empresas</span></p>
-							</div>
-						</div>
-					{/if}
 				</div>
+			{/each}
+		</div>
+
+		<!-- CTA Footer -->
+		<div 
+			class="text-center mt-16 md:mt-24 transition-all duration-1000 ease-out"
+			style="
+				opacity: {Math.min(1, Math.max(0, (scrollProgress - 0.4) * 2))};
+				transform: translateY({Math.max(0, 30 - scrollProgress * 40)}px);
+			"
+		>
+			<div class="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-full border border-blue-100">
+				<div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+				<p class="text-gray-700 font-medium">
+					Junte-se a mais de <span class="font-bold text-blue-600">500+ empresas</span> que já transformaram seu atendimento
+				</p>
 			</div>
 		</div>
 	</div>
-</div>
+</section>
