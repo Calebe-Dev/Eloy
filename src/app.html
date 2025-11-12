@@ -19,19 +19,18 @@
 		<meta name="theme-color" content="#2563eb" />
 		<meta name="msapplication-TileColor" content="#2563eb" />
 		
-		<!-- Performance: Preconnect to external domains -->
+		<!-- Performance: Preconnect FIRST (critical for fonts) -->
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		
-		<!-- Performance: DNS Prefetch -->
-		<link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-		<link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+		<!-- Performance: Preload critical Inter font (400 weight) -->
+		<link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2" as="font" type="font/woff2" crossorigin />
 		
-		<!-- Web Fonts with optimal loading -->
+		<!-- Web Fonts with optimal loading (display=swap prevents FOIT) -->
 		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 		
-		<!-- Preload critical assets (adicionar quando tiver imagens críticas) -->
-		<!-- <link rel="preload" as="image" href="%sveltekit.assets%/hero-image.webp" /> -->
+		<!-- Performance: DNS Prefetch (fallback for older browsers) -->
+		<link rel="dns-prefetch" href="https://fonts.googleapis.com" />
 		
 		<!-- Security Headers -->
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />

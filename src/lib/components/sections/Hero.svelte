@@ -6,14 +6,26 @@
 
 <div class="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50">
 	<!-- Animated gradient background -->
-	<div class="absolute inset-0 overflow-hidden pointer-events-none">
-		<!-- Gradient orbs with animation - responsive sizes -->
-		<div class="absolute top-1/4 -left-24 sm:-left-32 lg:-left-48 w-48 h-48 sm:w-72 sm:h-72 lg:w-96 lg:h-96 bg-gradient-to-br from-blue-400/30 to-cyan-300/20 rounded-full blur-2xl sm:blur-3xl animate-float"></div>
-		<div class="absolute bottom-1/4 -right-24 sm:-right-32 lg:-right-48 w-48 h-48 sm:w-72 sm:h-72 lg:w-96 lg:h-96 bg-gradient-to-br from-purple-400/30 to-pink-300/20 rounded-full blur-2xl sm:blur-3xl animate-float-delayed"></div>
-		<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[450px] sm:h-[450px] lg:w-[600px] lg:h-[600px] bg-gradient-to-br from-indigo-300/10 to-violet-300/10 rounded-full blur-2xl sm:blur-3xl animate-pulse-slow"></div>
+	<div class="absolute inset-0 overflow-hidden pointer-events-none" style="contain: paint;">
+		<!-- Gradient orbs with animation - responsive sizes with fixed dimensions to prevent CLS -->
+		<div 
+			class="absolute top-1/4 -left-24 sm:-left-32 lg:-left-48 bg-gradient-to-br from-blue-400/30 to-cyan-300/20 rounded-full blur-2xl sm:blur-3xl animate-float"
+			style="width: 12rem; height: 12rem;"
+			aria-hidden="true"
+		></div>
+		<div 
+			class="absolute bottom-1/4 -right-24 sm:-right-32 lg:-right-48 bg-gradient-to-br from-purple-400/30 to-pink-300/20 rounded-full blur-2xl sm:blur-3xl animate-float-delayed"
+			style="width: 12rem; height: 12rem;"
+			aria-hidden="true"
+		></div>
+		<div 
+			class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-br from-indigo-300/10 to-violet-300/10 rounded-full blur-2xl sm:blur-3xl animate-pulse-slow"
+			style="width: min(600px, 80vw); height: min(600px, 80vw);"
+			aria-hidden="true"
+		></div>
 		
 		<!-- Mesh gradient overlay -->
-		<div class="absolute inset-0 bg-gradient-to-b from-transparent via-white/50 to-white"></div>
+		<div class="absolute inset-0 bg-gradient-to-b from-transparent via-white/50 to-white" aria-hidden="true"></div>
 	</div>
 
 	<Container size="lg" class="relative z-10 px-4 sm:px-6 lg:px-8">
@@ -22,10 +34,10 @@
 			<div class="space-y-6 sm:space-y-7 lg:space-y-8">
 				<AnimatedBlock>
 					<h1 class="font-bold tracking-tight leading-[1.1] sm:leading-tight">
-						<span class="block text-gray-900" style="font-size: clamp(2.5rem, 8vw, 4.5rem);">O que falta para</span>
+						<span class="block text-gray-900" style="font-size: clamp(2.5rem, 8vw, 4.5rem); font-display: swap;">O que falta para</span>
 						<span
 							class="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mt-2 sm:mt-3"
-							style="font-size: clamp(2.5rem, 8vw, 4.5rem);"
+							style="font-size: clamp(2.5rem, 8vw, 4.5rem); font-display: swap;"
 						>
 							um bom atendimento?
 						</span>
@@ -57,7 +69,7 @@
 	</Container>
 
 	<!-- Scroll indicator - hidden on mobile/tablet, visible on desktop -->
-	<div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce hidden lg:block">
+	<div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce hidden lg:block" aria-hidden="true">
 		<svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 			<path
 				stroke-linecap="round"
