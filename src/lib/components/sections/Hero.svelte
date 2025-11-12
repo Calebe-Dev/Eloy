@@ -5,10 +5,15 @@
 </script>
 
 <div class="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50">
-	<!-- Background decoration -->
+	<!-- Animated gradient background -->
 	<div class="absolute inset-0 overflow-hidden pointer-events-none">
-		<div class="absolute top-1/4 -left-48 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl"></div>
-		<div class="absolute bottom-1/4 -right-48 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl"></div>
+		<!-- Gradient orbs with animation -->
+		<div class="absolute top-1/4 -left-48 w-96 h-96 bg-gradient-to-br from-blue-400/30 to-cyan-300/20 rounded-full blur-3xl animate-float"></div>
+		<div class="absolute bottom-1/4 -right-48 w-96 h-96 bg-gradient-to-br from-purple-400/30 to-pink-300/20 rounded-full blur-3xl animate-float-delayed"></div>
+		<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-br from-indigo-300/10 to-violet-300/10 rounded-full blur-3xl animate-pulse-slow"></div>
+		
+		<!-- Mesh gradient overlay -->
+		<div class="absolute inset-0 bg-gradient-to-b from-transparent via-white/50 to-white"></div>
 	</div>
 
 	<Container size="lg" class="relative z-10">

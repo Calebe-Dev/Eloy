@@ -1,12 +1,40 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import Section from '../ui/Section.svelte';
 	import Container from '../ui/Container.svelte';
 	import AnimatedBlock from '../ui/AnimatedBlock.svelte';
+	import ScrollProgressBar from '../ui/ScrollProgressBar.svelte';
+
+	let sectionElement = $state<HTMLElement>();
+	let currentStep = $state(0);
+	const totalSteps = 3;
+
+	onMount(() => {
+		const observer = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting) {
+						// Anima os passos em sequência
+						setTimeout(() => { currentStep = 1; }, 200);
+						setTimeout(() => { currentStep = 2; }, 600);
+						setTimeout(() => { currentStep = 3; }, 1000);
+					}
+				});
+			},
+			{ threshold: 0.2 }
+		);
+
+		if (sectionElement) {
+			observer.observe(sectionElement);
+		}
+
+		return () => observer.disconnect();
+	});
 </script>
 
 <Section background="gray">
 	<Container>
-		<div class="max-w-6xl mx-auto space-y-16 md:space-y-20">
+		<div bind:this={sectionElement} class="max-w-6xl mx-auto space-y-16 md:space-y-20">
 			<AnimatedBlock>
 				<h2 class="text-4xl md:text-5xl lg:text-6xl font-bold text-center text-gray-900">Como Funciona</h2>
 			</AnimatedBlock>
@@ -52,6 +80,14 @@
 					</div>
 				</AnimatedBlock>
 			</div>
+
+			<!-- Barra de progresso independente para esta seção -->
+			<ScrollProgressBar 
+				bind:targetElement={sectionElement}
+				{totalSteps}
+				{currentStep}
+				position="bottom-center"
+			/>
 		</div>
 	</Container>
 </Section>

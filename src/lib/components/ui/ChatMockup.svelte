@@ -28,8 +28,33 @@
 	let visibleCount = $state(0);
 	let pinWrapper: HTMLDivElement;
 	let scrollProgress = $state(0);
+	let isAnimationVisible = $state(false);
 
 	onMount(() => {
+		let observer: IntersectionObserver | undefined;
+
+		// Função para inicializar o observer
+		const initObserver = () => {
+			if (!pinWrapper) return;
+
+			observer = new IntersectionObserver(
+				(entries) => {
+					entries.forEach((entry) => {
+						isAnimationVisible = entry.isIntersecting;
+					});
+				},
+				{
+					threshold: 0.1, // Aparece quando 10% da seção está visível
+					rootMargin: '0px'
+				}
+			);
+
+			observer.observe(pinWrapper);
+		};
+
+		// Aguarda o DOM estar pronto
+		setTimeout(initObserver, 0);
+
 		const recalc = () => {
 			if (!pinWrapper) return;
 			const viewportCenter = window.innerHeight / 2;
@@ -56,6 +81,7 @@
 		window.addEventListener('scroll', recalc, { passive: true } as AddEventListenerOptions);
 		window.addEventListener('resize', recalc);
 		return () => {
+			if (observer) observer.disconnect();
 			window.removeEventListener('scroll', recalc as EventListener);
 			window.removeEventListener('resize', recalc as EventListener);
 		};
@@ -116,9 +142,11 @@
 			</div>
 		</div>
 		</div>
-		
-		<!-- Apple-style Progress Indicator (all dots) -->
-		<div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-gray-900/60 backdrop-blur-xl px-5 py-3 rounded-full shadow-lg">
+	</div>
+	
+	<!-- Apple-style Progress Indicator (all dots) - Só aparece quando a animação está visível -->
+	{#if isAnimationVisible}
+		<div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-gray-900/60 backdrop-blur-xl px-5 py-3 rounded-full shadow-lg transition-all duration-500 ease-out">
 			{#each messages as _, index}
 				<div 
 					class="w-2 h-2 rounded-full transition-all duration-500"
@@ -127,7 +155,7 @@
 				></div>
 			{/each}
 		</div>
-	</div>
+	{/if}
 </div>
 
 <style>
