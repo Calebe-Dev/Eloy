@@ -44,38 +44,43 @@
 
 <Section background="transparent">
 	<Container size="default">
-		<div class="max-w-3xl mx-auto space-y-12">
+		<div class="max-w-4xl mx-auto space-y-12 md:space-y-16">
 			<AnimatedBlock>
-				<h2 class="text-4xl md:text-5xl font-bold text-center text-gray-900">
+				<h2 class="text-4xl md:text-5xl lg:text-6xl font-bold text-center text-gray-900">
 					Perguntas Frequentes
 				</h2>
+				<p class="text-lg md:text-xl text-gray-600 text-center mt-4">
+					Tudo que você precisa saber sobre o Eloi
+				</p>
 			</AnimatedBlock>
 
-			<div class="space-y-4">
+			<div class="space-y-3">
 				{#each faqs as faq, i}
-					<AnimatedBlock delay={i * 100}>
-						<div class="bg-white rounded-2xl border border-gray-200 overflow-hidden transition-shadow hover:shadow-md">
+					<AnimatedBlock delay={i * 80}>
+						<div class="bg-white rounded-2xl border-2 border-gray-100 overflow-hidden transition-all duration-300 hover:border-blue-200 hover:shadow-lg">
 							<button
 								onclick={() => toggle(i)}
-								class="w-full px-6 py-5 text-left flex items-center justify-between gap-4 hover:bg-gray-50 transition-colors"
+								class="w-full px-6 lg:px-8 py-5 lg:py-6 text-left flex items-center justify-between gap-4 hover:bg-gray-50 transition-colors"
 							>
-								<span class="text-lg font-semibold text-gray-900">{faq.question}</span>
-								<svg
-									class={`w-5 h-5 text-gray-500 transition-transform ${openIndex === i ? 'rotate-180' : ''}`}
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M19 9l-7 7-7-7"
-									></path>
-								</svg>
+								<span class="text-lg lg:text-xl font-semibold text-gray-900 pr-4">{faq.question}</span>
+								<div class={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${openIndex === i ? 'bg-blue-600 rotate-180' : 'bg-gray-100'}`}>
+									<svg
+										class={`w-5 h-5 transition-colors ${openIndex === i ? 'text-white' : 'text-gray-600'}`}
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M19 9l-7 7-7-7"
+										></path>
+									</svg>
+								</div>
 							</button>
 							{#if openIndex === i}
-								<div class="px-6 pb-5 text-gray-600 leading-relaxed">
+								<div class="px-6 lg:px-8 pb-6 text-gray-600 leading-relaxed text-base lg:text-lg animate-fade-in">
 									{faq.answer}
 								</div>
 							{/if}
@@ -86,3 +91,20 @@
 		</div>
 	</Container>
 </Section>
+
+<style>
+	@keyframes fade-in {
+		from {
+			opacity: 0;
+			transform: translateY(-8px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.animate-fade-in {
+		animation: fade-in 0.3s ease-out;
+	}
+</style>
