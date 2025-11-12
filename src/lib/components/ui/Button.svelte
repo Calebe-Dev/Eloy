@@ -6,12 +6,14 @@
 		size = 'md',
 		href,
 		onclick,
+		class: className = '',
 		children
 	}: {
 		variant?: 'primary' | 'secondary' | 'ghost';
 		size?: 'sm' | 'md' | 'lg';
 		href?: string;
 		onclick?: () => void;
+		class?: string;
 		children: Snippet;
 	} = $props();
 
@@ -31,7 +33,7 @@
 		lg: 'px-8 py-4 text-lg'
 	};
 
-	const classes = `${baseStyles} ${variants[variant]} ${sizes[size]}`;
+	const classes = `${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`;
 </script>
 
 {#if href}

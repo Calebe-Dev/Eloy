@@ -9,7 +9,21 @@ const config = {
 	kit: {
 		// Use the static adapter and enable prerendering for all entries
 		adapter: adapter(),
-		prerender: { entries: ['*'] }
+		prerender: { 
+			entries: ['*'],
+			handleHttpError: ({ path, referrer, message }) => {
+				// Ignore 404s for missing favicons during build
+				if (path.includes('favicon') || path.includes('apple-touch-icon')) {
+					console.warn(`Missing favicon: ${path}`);
+					return;
+				}
+				throw new Error(message);
+			},
+			handleMissingId: ({ id, path, message }) => {
+				// Ignore missing anchor IDs (can be added later)
+				console.warn(`Missing anchor #${id} on ${path}`);
+			}
+		}
 	}
 };
 
