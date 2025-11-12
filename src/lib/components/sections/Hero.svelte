@@ -13,7 +13,7 @@
 	</div>
 
 	<Container size="lg" class="relative z-10">
-		<div class="text-center max-w-4xl mx-auto space-y-12">
+		<div class="text-center max-w-4xl mx-auto">
 			<!-- Text content centered -->
 			<div class="space-y-6 lg:space-y-8">
 				<AnimatedBlock>
@@ -48,11 +48,6 @@
 					</div>
 				</AnimatedBlock>
 			</div>
-
-			<!-- Chat mockup below centered -->
-			<AnimatedBlock delay={800}>
-				<ChatMockup className="mt-16" />
-			</AnimatedBlock>
 		</div>
 	</Container>
 
@@ -67,4 +62,11 @@
 			></path>
 		</svg>
 	</div>
+</div>
+
+<!-- Chat Mockup Section - Separate from Hero -->
+<div class="relative bg-white py-20">
+	<Container size="lg">
+		<ChatMockup />
+	</Container>
 </div>
