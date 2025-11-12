@@ -1,226 +1,216 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	let {
-		className = ''
-	}: {
+	interface Props {
 		className?: string;
-	} = $props();
+	}
 
-	let messages = [
-		{ text: 'Oi, eu sou Eloi.', id: 1 },
+	let { className = '' }: Props = $props();
+
+	const messages = [
+		{ id: 1, text: 'Olá! 👋 Sou o Eloi. Como posso ajudar você hoje?', sender: 'bot' },
+		{ id: 2, text: 'Oi! Queria entender melhor como o Eloi funciona', sender: 'user' },
 		{
-			text: 'Eu aprendo com cada conversa e estou sempre pronto para ajudar seus clientes.',
-			id: 2
+			id: 3,
+			text: 'Perfeito! Sou um assistente de IA treinado especialmente para o seu negócio. Posso responder dúvidas, qualificar leads e atender seus clientes 24/7.',
+			sender: 'bot'
 		},
-		{ text: 'A qualquer hora e em qualquer lugar.', id: 3 },
-		{ text: 'Fui projetado para me moldar à cada negócio.', id: 4 },
+		{ id: 4, text: 'Interessante! E você aprende com as conversas?', sender: 'user' },
 		{
-			text: 'Sou totalmente personalizável. Da linguagem ao design, refletindo a essência de cada marca.',
-			id: 5
+			id: 5,
+			text: 'Sim! Cada interação me ajuda a entender melhor o tom da sua marca e as necessidades dos seus clientes. Fico mais inteligente a cada dia! 🧠✨',
+			sender: 'bot'
 		},
-		{
-			text: 'Então... quando começamos? Estou pronto para transformar a forma como sua marca se conecta às pessoas.',
-			id: 6
-		}
+		{ id: 6, text: 'Que incrível! Quero testar 🚀', sender: 'user' }
 	];
 
-	let messageElements: HTMLDivElement[] = [];
-	let visibleMessages = $state<Set<number>>(new Set());
+	let containerElement: HTMLDivElement;
+	let visibleMessages = $state<number>(0);
+	let scrollProgress = $state(0);
 
 	onMount(() => {
 		const observer = new IntersectionObserver(
 			(entries) => {
 				entries.forEach((entry) => {
 					if (entry.isIntersecting) {
-						const index = parseInt(entry.target.getAttribute('data-index') || '0');
-						visibleMessages = new Set([...visibleMessages, index]);
+						// Calculate scroll progress (0 to 1)
+						scrollProgress = Math.min(entry.intersectionRatio * 1.5, 1);
+						
+						// Show messages progressively based on scroll
+						const messagesToShow = Math.ceil(messages.length * scrollProgress);
+						visibleMessages = messagesToShow;
 					}
 				});
 			},
-			{ threshold: 0.3, rootMargin: '-50px' }
+			{
+				threshold: Array.from({ length: 21 }, (_, i) => i * 0.05), // Track every 5%
+				rootMargin: '-10% 0px -10% 0px'
+			}
 		);
 
-		messageElements.forEach((el) => {
-			if (el) observer.observe(el);
-		});
+		if (containerElement) {
+			observer.observe(containerElement);
+		}
 
 		return () => observer.disconnect();
 	});
 </script>
 
-<div class={`w-full max-w-2xl mx-auto ${className}`}>
-	<!-- Chat widget container -->
-	<div class="bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden">
-		<!-- Chat header -->
-		<div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4 flex items-center gap-3">
-			<div class="w-10 h-10 bg-white rounded-full flex items-center justify-center flex-shrink-0">
-				<svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-					<path
-						fill-rule="evenodd"
-						d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-						clip-rule="evenodd"
-					></path>
-				</svg>
-			</div>
-			<div class="flex-1">
-				<h3 class="text-white font-semibold text-lg">Eloi</h3>
-				<p class="text-blue-100 text-sm">A voz digital da sua empresa</p>
+<div class="w-full max-w-2xl mx-auto {className}" bind:this={containerElement}>
+	<!-- Chat Widget Container with dynamic height -->
+	<div
+		class="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100 transition-all duration-1000 ease-out relative"
+		style="height: {200 + scrollProgress * 500}px;"
+	>
+		<!-- Chat Header -->
+		<div class="bg-gradient-to-r from-blue-600 via-blue-500 to-purple-600 px-6 py-5 flex items-center justify-between shadow-lg sticky top-0 z-10">
+			<div class="flex items-center gap-4">
+				<div class="relative">
+					<div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-md">
+						<span class="text-2xl font-black bg-gradient-to-br from-blue-600 to-purple-600 bg-clip-text text-transparent">
+							E
+						</span>
+					</div>
+					<div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white rounded-full"></div>
+				</div>
+				<div>
+					<h3 class="text-white font-bold text-lg tracking-tight">Eloi</h3>
+					<p class="text-blue-50 text-sm flex items-center gap-1">
+						<span class="w-2 h-2 bg-green-300 rounded-full animate-pulse"></span>
+						Online agora
+					</p>
+				</div>
 			</div>
 			<div class="flex gap-2">
 				<button
-					class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+					aria-label="Minimizar chat"
+					class="w-9 h-9 flex items-center justify-center hover:bg-white/20 rounded-xl transition-all active:scale-95"
 				>
-					<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"
-						></path>
+					<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
 					</svg>
 				</button>
 				<button
-					class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+					aria-label="Fechar chat"
+					class="w-9 h-9 flex items-center justify-center hover:bg-white/20 rounded-xl transition-all active:scale-95"
 				>
-					<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M6 18L18 6M6 6l12 12"></path>
+					<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
 					</svg>
 				</button>
 			</div>
 		</div>
 
-		<!-- Chat messages -->
-		<div
-			class="p-6 space-y-4 bg-gradient-to-b from-gray-50 to-white min-h-[400px] max-h-[500px] overflow-y-auto"
-		>
-			{#each messages as message, index}
+		<!-- Messages Container - Scrollable -->
+		<div class="overflow-y-auto bg-gradient-to-b from-gray-50 to-white px-6 py-6 space-y-5" style="height: calc(100% - 160px);">
+			{#each messages.slice(0, visibleMessages) as message, index (message.id)}
 				<div
-					bind:this={messageElements[index]}
-					data-index={index}
-					class={`flex items-start gap-3 transition-all duration-700 ${
-						visibleMessages.has(index) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
-					}`}
-					style={`transition-delay: ${index * 150}ms;`}
+					class="message-reveal"
+					style="animation-delay: {index * 100}ms;"
 				>
-					<div
-						class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg"
-					>
-						<svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-							<path
-								fill-rule="evenodd"
-								d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-								clip-rule="evenodd"
-							></path>
-						</svg>
-					</div>
-					<div
-						class="flex-1 bg-white rounded-2xl rounded-tl-sm px-5 py-3 shadow-md border border-gray-100"
-					>
-						<p class="text-gray-800 leading-relaxed">{message.text}</p>
+					<div class="flex {message.sender === 'user' ? 'justify-end' : 'justify-start'} mb-2">
+						{#if message.sender === 'bot'}
+							<div class="flex gap-3 max-w-[85%]">
+								<div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+									<span class="text-white text-sm font-bold">E</span>
+								</div>
+								<div class="bg-white shadow-lg px-5 py-4 rounded-3xl rounded-tl-md border border-gray-100">
+									<p class="text-gray-800 text-[15px] leading-relaxed">{message.text}</p>
+								</div>
+							</div>
+						{:else}
+							<div class="max-w-[85%]">
+								<div class="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg px-5 py-4 rounded-3xl rounded-tr-md">
+									<p class="text-white text-[15px] leading-relaxed font-medium">{message.text}</p>
+								</div>
+							</div>
+						{/if}
 					</div>
 				</div>
 			{/each}
 
-			<!-- Typing indicator (shows after last message) -->
-			{#if visibleMessages.has(messages.length - 1)}
-				<div class="flex items-start gap-3 animate-fade-in">
-					<div
-						class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center"
-					>
-						<svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-							<path
-								fill-rule="evenodd"
-								d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-								clip-rule="evenodd"
-							></path>
-						</svg>
-					</div>
-					<div
-						class="bg-white rounded-2xl rounded-tl-sm px-5 py-3 shadow-md border border-gray-100"
-					>
-						<div class="flex gap-1">
-							<div
-								class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-								style="animation-delay: 0ms;"
-							></div>
-							<div
-								class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-								style="animation-delay: 150ms;"
-							></div>
-							<div
-								class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-								style="animation-delay: 300ms;"
-							></div>
+			<!-- Typing indicator - shows when all messages are visible -->
+			{#if visibleMessages >= messages.length}
+				<div class="flex justify-start typing-indicator">
+					<div class="flex gap-3">
+						<div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
+							<span class="text-white text-sm font-bold">E</span>
+						</div>
+						<div class="bg-white shadow-lg px-5 py-4 rounded-3xl rounded-tl-md border border-gray-100">
+							<div class="flex gap-1.5">
+								<div class="w-2.5 h-2.5 bg-gray-400 rounded-full animate-bounce"></div>
+								<div class="w-2.5 h-2.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s;"></div>
+								<div class="w-2.5 h-2.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.4s;"></div>
+							</div>
 						</div>
 					</div>
 				</div>
 			{/if}
 		</div>
 
-		<!-- Input area -->
-		<div class="border-t border-gray-200 p-4 bg-white">
-			<div class="flex items-center gap-3 bg-gray-100 rounded-full px-4 py-3">
+		<!-- Input Area - Fixed at bottom -->
+		<div class="absolute bottom-0 left-0 right-0 px-6 py-5 bg-white/95 backdrop-blur-lg border-t border-gray-200">
+			<div class="flex gap-3 items-center">
 				<input
 					type="text"
 					placeholder="Digite sua mensagem..."
-					class="flex-1 bg-transparent text-gray-900 placeholder-gray-500 outline-none"
-					disabled
+					class="flex-1 px-5 py-3 bg-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
 				/>
 				<button
-					class="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-lg"
+					aria-label="Enviar mensagem"
+					class="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center hover:shadow-xl transition-all transform hover:scale-105 active:scale-95"
 				>
 					<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
-							stroke-width="2"
-							d="M14 5l7 7m0 0l-7 7m7-7H3"
+							stroke-width="2.5"
+							d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
 						></path>
 					</svg>
 				</button>
 			</div>
 		</div>
-	</div>
 
-	<!-- Rating stars (appear at bottom after scroll) -->
-	<div
-		class={`flex justify-center gap-1 mt-6 transition-all duration-700 ${
-			visibleMessages.has(messages.length - 1)
-				? 'opacity-100 translate-y-0'
-				: 'opacity-0 translate-y-8'
-		}`}
-	>
-		{#each Array(5) as _, i}
-			<svg class="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-				<path
-					d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-				></path>
-			</svg>
-		{/each}
+		<!-- Scroll indicator hint -->
+		{#if scrollProgress < 0.9}
+			<div class="absolute bottom-24 left-1/2 -translate-x-1/2 opacity-50 animate-bounce pointer-events-none">
+				<svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+				</svg>
+			</div>
+		{/if}
 	</div>
-	<p
-		class={`text-center text-gray-600 mt-3 transition-all duration-700 ${
-			visibleMessages.has(messages.length - 1)
-				? 'opacity-100 translate-y-0'
-				: 'opacity-0 translate-y-8'
-		}`}
-	>
-		Experimente o futuro do atendimento hoje!
-	</p>
 </div>
 
 <style>
-	@keyframes fade-in {
+	@keyframes slideInUp {
 		from {
 			opacity: 0;
+			transform: translateY(30px) scale(0.95);
 		}
 		to {
 			opacity: 1;
+			transform: translateY(0) scale(1);
 		}
 	}
 
-	.animate-fade-in {
-		animation: fade-in 0.6s ease-out;
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+			transform: scale(0.9);
+		}
+		to {
+			opacity: 1;
+			transform: scale(1);
+		}
+	}
+
+	.message-reveal {
+		animation: slideInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+	}
+
+	.typing-indicator {
+		animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 	}
 </style>
