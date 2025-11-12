@@ -1,3 +1,21 @@
-<h1>Welcome to your library project</h1>
-<p>Create your package using @sveltejs/package and preview/showcase your work with SvelteKit</p>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+<script lang="ts">
+	import Hero from '$lib/components/sections/Hero.svelte';
+	import Problem from '$lib/components/sections/Problem.svelte';
+	import Solution from '$lib/components/sections/Solution.svelte';
+	import HowItWorks from '$lib/components/sections/HowItWorks.svelte';
+	import Pricing from '$lib/components/sections/Pricing.svelte';
+	import Stats from '$lib/components/sections/Stats.svelte';
+	import FAQ from '$lib/components/sections/FAQ.svelte';
+	import CTA from '$lib/components/sections/CTA.svelte';
+	import Footer from '$lib/components/sections/Footer.svelte';
+</script>
+
+<Hero />
+<Problem />
+<Solution />
+<HowItWorks />
+<Pricing />
+<Stats />
+<FAQ />
+<CTA />
+<Footer />
