@@ -88,7 +88,7 @@
 	});
 </script>
 
-<div class="w-full {className}">
+<div class="w-full py-16 md:py-24 lg:py-32 {className}">
 	<!-- Pin wrapper: controls how long the mockup stays centered -->
 	<div bind:this={pinWrapper} class="relative" style={`height: ${messages.length * 90}vh`}>
 		<!-- Mobile Mockup Container (sticky, centered only within this wrapper) -->

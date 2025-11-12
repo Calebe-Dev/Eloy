@@ -1,23 +1,23 @@
 <script lang="ts">
 	import Section from '../ui/Section.svelte';
 	import Container from '../ui/Container.svelte';
-	import AnimatedBlock from '../ui/AnimatedBlock.svelte';
+	import ScrollReveal from '../ui/ScrollReveal.svelte';
 	import Button from '../ui/Button.svelte';
 </script>
 
-<Section background="transparent">
+<Section background="transparent" spacing="large">
 	<Container>
-		<div class="space-y-12 md:space-y-20">
-			<AnimatedBlock>
+		<div class="space-y-16 md:space-y-20">
+			<ScrollReveal animation="fade-up">
 				<h2 class="text-4xl md:text-5xl lg:text-6xl font-bold text-center text-gray-900">Investimento</h2>
 				<p class="text-lg md:text-xl text-gray-600 text-center mt-4 max-w-2xl mx-auto">
 					Escolha o plano ideal para transformar seu atendimento
 				</p>
-			</AnimatedBlock>
+			</ScrollReveal>
 
 			<div class="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
 				<!-- Essencial -->
-				<AnimatedBlock delay={200}>
+				<ScrollReveal animation="fade-up" delay={100}>
 					<div class="relative bg-white rounded-3xl p-8 lg:p-10 shadow-md border border-gray-200 hover:shadow-2xl hover:scale-105 transition-all duration-300 h-full flex flex-col">
 						<div class="space-y-6 flex-1">
 							<div>
@@ -54,10 +54,10 @@
 							<Button variant="ghost" size="md">Começar agora</Button>
 						</div>
 					</div>
-				</AnimatedBlock>
+				</ScrollReveal>
 
 				<!-- Profissional (Destaque) -->
-				<AnimatedBlock delay={400}>
+				<ScrollReveal animation="scale" delay={200}>
 					<div class="relative bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 rounded-3xl p-8 lg:p-10 shadow-2xl transform scale-105 h-full flex flex-col">
 						<div class="absolute -top-5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 px-6 py-2 rounded-full text-sm font-bold shadow-lg">
 							✨ Recomendado
@@ -97,10 +97,10 @@
 							<Button variant="secondary" size="md">Começar agora</Button>
 						</div>
 					</div>
-				</AnimatedBlock>
+				</ScrollReveal>
 
 				<!-- Enterprise -->
-				<AnimatedBlock delay={600}>
+				<ScrollReveal animation="fade-up" delay={300}>
 					<div class="relative bg-white rounded-3xl p-8 lg:p-10 shadow-md border border-gray-200 hover:shadow-2xl hover:scale-105 transition-all duration-300 h-full flex flex-col">
 						<div class="space-y-6 flex-1">
 							<div>
@@ -142,7 +142,7 @@
 							<Button variant="ghost" size="md">Falar com vendas</Button>
 						</div>
 					</div>
-				</AnimatedBlock>
+				</ScrollReveal>
 			</div>
 		</div>
 	</Container>

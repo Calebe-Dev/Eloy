@@ -1,8 +1,12 @@
-# ScrollProgressBar
+# ScrollProgressBar & ProblemReveal
+
+Componentes reutilizáveis para criar experiências de scroll imersivas e elegantes.
+
+## ScrollProgressBar
 
 Componente reutilizável de barra de progresso que aparece automaticamente apenas quando a animação está visível na tela.
 
-## Características
+### Características
 
 - ✅ **Detecção automática de visibilidade** usando IntersectionObserver
 - ✅ **Independente para cada seção** - cada animação tem sua própria barra
@@ -10,7 +14,73 @@ Componente reutilizável de barra de progresso que aparece automaticamente apena
 - ✅ **Animação suave** - fade in/out quando entra/sai da viewport
 - ✅ **Design Apple-style** - visual moderno com backdrop blur
 
-## Como Usar
+## ProblemReveal
+
+Seção especial com scroll-driven animation que revela textos progressivamente, ocupando toda a tela.
+
+### Características
+
+- 🎬 **Scroll-synced**: Textos aparecem sincronizados com o scroll
+- 🎨 **Full-screen**: Ocupa toda a tela para máximo impacto
+- ✨ **Efeitos visuais**:
+  - Grid animado de fundo
+  - Orbs com gradiente e parallax
+  - Partículas flutuantes
+  - Scan line sutil
+  - Blur e fade transitions
+  - Sublinhado animado
+  - Efeito de brilho (glow)
+  - Partículas ao redor do texto ativo
+
+- 📊 **Indicador de progresso vertical** elegante
+- 🎯 **3 etapas de conteúdo** reveladas progressivamente
+- 🌈 **Gradientes personalizáveis** por etapa
+
+### Como Funciona
+
+```svelte
+const textBlocks = [
+  {
+    id: 1,
+    text: 'Texto principal',
+    highlight: 'texto destacado',
+    color: 'from-blue-400 to-cyan-400'
+  },
+  // ... mais blocos
+];
+```
+
+**Cálculo de progresso:**
+- Divide a altura da seção em 3 partes (0-33%, 33-66%, 66-100%)
+- Cada parte corresponde a um bloco de texto
+- Transições suaves entre os blocos
+
+**Efeitos visuais:**
+- **Parallax**: Orbs se movem em direções opostas baseado no `scrollProgress`
+- **Blur transition**: Texto inativo fica desfocado (blur 12px)
+- **Scale**: Texto ativo em escala 1, inativos em 0.9
+- **Opacity**: Texto futuro em 0, ativo em 1, passado em 0.2
+
+### Animações CSS
+
+```css
+@keyframes fadeInUp - Texto aparece de baixo
+@keyframes scaleIn - Texto final cresce
+@keyframes slideInRight - Highlight desliza da esquerda
+@keyframes float - Partículas flutuam
+@keyframes scan - Linha de scan vertical
+```
+
+### Estrutura de Scroll
+
+```
+300vh total (3x altura da viewport)
+  ├─ 0-100vh: Primeiro texto
+  ├─ 100-200vh: Segundo texto
+  └─ 200-300vh: Texto final (destaque)
+```
+
+## Como Usar ScrollProgressBar
 
 ### 1. Importe o componente
 

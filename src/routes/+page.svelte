@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Hero from '$lib/components/sections/Hero.svelte';
 	import ChatMockup from '$lib/components/ui/ChatMockup.svelte';
-	import Problem from '$lib/components/sections/Problem.svelte';
+	import ProblemReveal from '$lib/components/sections/ProblemReveal.svelte';
 	import Solution from '$lib/components/sections/Solution.svelte';
 	import HowItWorks from '$lib/components/sections/HowItWorks.svelte';
 	import Pricing from '$lib/components/sections/Pricing.svelte';
@@ -13,7 +13,7 @@
 
 <Hero />
 <ChatMockup />
-<Problem />
+<ProblemReveal />
 <Solution />
 <HowItWorks />
 <Pricing />
