@@ -68,3 +68,63 @@
 		</svg>
 	</div>
 </div>
+
+<!-- Scroll CTA Banner -->
+<div class="relative bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 overflow-hidden">
+	<!-- Animated background pattern -->
+	<div class="absolute inset-0 opacity-20">
+		<div class="absolute inset-0 bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:2rem_2rem] animate-pulse-slow"></div>
+	</div>
+	
+	<!-- Floating orbs -->
+	<div class="absolute top-1/2 left-1/4 w-32 h-32 bg-white/10 rounded-full blur-2xl animate-float"></div>
+	<div class="absolute top-1/2 right-1/4 w-40 h-40 bg-white/10 rounded-full blur-2xl animate-float-delayed"></div>
+	
+	<div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 lg:py-12">
+		<div class="flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-8">
+			<!-- Left side - Main message -->
+			<div class="text-center lg:text-left flex-1">
+				<div class="inline-flex items-center gap-2 px-4 py-1.5 bg-white/20 backdrop-blur-sm rounded-full mb-3 sm:mb-4">
+					<div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+					<span class="text-white text-xs sm:text-sm font-medium uppercase tracking-wider">Disponível agora</span>
+				</div>
+				<h2 class="text-white font-bold mb-2 sm:mb-3 leading-tight" style="font-size: clamp(1.5rem, 4vw, 2rem);">
+					Descubra como Eloi transforma atendimento
+				</h2>
+				<p class="text-white/90 font-light leading-relaxed max-w-2xl mx-auto lg:mx-0" style="font-size: clamp(1rem, 2vw, 1.125rem);">
+					Role a página para conhecer os recursos, ver resultados reais e testar gratuitamente
+				</p>
+			</div>
+			
+			<!-- Right side - Interactive CTA -->
+			<div class="flex flex-col sm:flex-row items-center gap-4 lg:gap-5">
+				<!-- Animated scroll hint -->
+				<div class="hidden sm:flex flex-col items-center gap-2 animate-bounce">
+					<svg class="w-8 h-8 lg:w-10 lg:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+					</svg>
+					<span class="text-white/80 text-xs font-medium uppercase tracking-wider">Role</span>
+				</div>
+				
+				<!-- Quick action button -->
+				<div class="relative group">
+					<div class="absolute -inset-1 bg-white rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity"></div>
+					<button class="relative bg-white text-purple-600 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-3 text-base sm:text-lg whitespace-nowrap">
+						<span>Testar agora</span>
+						<svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+						</svg>
+					</button>
+				</div>
+			</div>
+		</div>
+		
+		<!-- Progress hint - visible only on mobile -->
+		<div class="sm:hidden flex items-center justify-center gap-2 mt-6 animate-bounce">
+			<svg class="w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+			</svg>
+			<span class="text-white/80 text-sm font-medium">Deslize para explorar</span>
+		</div>
+	</div>
+</div>
