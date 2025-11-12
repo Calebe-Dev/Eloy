@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Hero from '$lib/components/sections/Hero.svelte';
+	import ChatMockup from '$lib/components/ui/ChatMockup.svelte';
 	import Problem from '$lib/components/sections/Problem.svelte';
 	import Solution from '$lib/components/sections/Solution.svelte';
 	import HowItWorks from '$lib/components/sections/HowItWorks.svelte';
@@ -11,6 +12,7 @@
 </script>
 
 <Hero />
+<ChatMockup />
 <Problem />
 <Solution />
 <HowItWorks />

@@ -27,6 +27,7 @@
 
 	let visibleCount = $state(0);
 	let pinWrapper: HTMLDivElement;
+	let scrollProgress = $state(0);
 
 	onMount(() => {
 		const recalc = () => {
@@ -44,6 +45,7 @@
 			const total = Math.max(end - start, 1);
 			const passed = Math.min(Math.max(centerDocY - start, 0), total);
 			const progress = passed / total; // 0..1 while pinned
+			scrollProgress = progress;
 
 			// Map progress to number of visible messages
 			const count = Math.min(messages.length, Math.max(1, Math.floor(progress * (messages.length + 0.0001)) + 1));
@@ -63,10 +65,10 @@
 <div class="w-full {className}">
 	<!-- Pin wrapper: controls how long the mockup stays centered -->
 	<div bind:this={pinWrapper} class="relative" style={`height: ${messages.length * 90}vh`}>
-		<!-- Mobile Mockup Container (sticky, centered) -->
+		<!-- Mobile Mockup Container (sticky, centered only within this wrapper) -->
 		<div
-			class="sticky top-1/2 -translate-y-1/2 mx-auto bg-white rounded-2xl overflow-hidden"
-			style="width: 340px; box-shadow: 0 4px 24px rgba(0,0,0,0.12);"
+			class="sticky mx-auto bg-white rounded-2xl overflow-hidden shadow-2xl"
+			style="width: 340px; box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 8px 24px rgba(0,0,0,0.1); top: calc(50vh - 310px);"
 		>
 		<!-- Header - Preto com avatar de perfil -->
 		<div class="bg-black px-4 py-5 flex items-center" style="height: 90px;">
@@ -113,6 +115,17 @@
 				/>
 			</div>
 		</div>
+		</div>
+		
+		<!-- Apple-style Progress Indicator (all dots) -->
+		<div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-gray-900/60 backdrop-blur-xl px-5 py-3 rounded-full shadow-lg">
+			{#each messages as _, index}
+				<div 
+					class="w-2 h-2 rounded-full transition-all duration-500"
+					class:bg-white={index < visibleCount}
+					class:bg-gray-500={index >= visibleCount}
+				></div>
+			{/each}
 		</div>
 	</div>
 </div>

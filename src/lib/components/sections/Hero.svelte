@@ -2,7 +2,6 @@
 	import Button from '../ui/Button.svelte';
 	import Container from '../ui/Container.svelte';
 	import AnimatedBlock from '../ui/AnimatedBlock.svelte';
-	import ChatMockup from '../ui/ChatMockup.svelte';
 </script>
 
 <div class="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -62,11 +61,4 @@
 			></path>
 		</svg>
 	</div>
-</div>
-
-<!-- Chat Mockup Section - Separate from Hero -->
-<div class="relative bg-white py-20">
-	<Container size="lg">
-		<ChatMockup />
-	</Container>
 </div>
