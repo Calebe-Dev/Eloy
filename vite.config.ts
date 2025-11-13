@@ -19,7 +19,7 @@ export default defineConfig({
 	],
 	build: {
 		cssCodeSplit: true,
-		cssMinify: 'lightningcss', // Mais rápido que esbuild
+		cssMinify: 'esbuild', // esbuild é compatível com Svelte :global()
 		minify: 'esbuild',
 		target: 'esnext',
 		rollupOptions: {
@@ -27,14 +27,6 @@ export default defineConfig({
 				manualChunks: {
 					vendor: ['svelte']
 				}
-			}
-		}
-	},
-	css: {
-		transformer: 'lightningcss',
-		lightningcss: {
-			drafts: {
-				customMedia: true
 			}
 		}
 	}
