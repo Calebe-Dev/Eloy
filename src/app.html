@@ -19,45 +19,46 @@
 		<meta name="theme-color" content="#2563eb" />
 		<meta name="msapplication-TileColor" content="#2563eb" />
 		
-		<!-- Performance: Preload critical self-hosted fonts -->
-		<link rel="preload" href="/fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin />
-		<link rel="preload" href="/fonts/inter-600.woff2" as="font" type="font/woff2" crossorigin />
-		
-		<!-- Performance: DNS Prefetch + Preconnect para APIs -->
-		<link rel="dns-prefetch" href="https://api.openai.com" />
-		<link rel="dns-prefetch" href="https://api.resend.com" />
-		<link rel="preconnect" href="https://api.openai.com" crossorigin />
+		<!-- Performance: Preload apenas font crítico -->
+		<link rel="preload" href="/fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin fetchpriority="high" />
 		
 		<!-- Critical CSS inline for faster FCP -->
 		<style>
-			/* Critical font-face declarations */
-			@font-face{font-family:'Inter';font-weight:300;font-style:normal;font-display:swap;src:url('/fonts/inter-300.woff2') format('woff2')}
-			@font-face{font-family:'Inter';font-weight:400;font-style:normal;font-display:swap;src:url('/fonts/inter-400.woff2') format('woff2')}
-			@font-face{font-family:'Inter';font-weight:600;font-style:normal;font-display:swap;src:url('/fonts/inter-600.woff2') format('woff2')}
-			@font-face{font-family:'Inter';font-weight:700;font-style:normal;font-display:swap;src:url('/fonts/inter-700.woff2') format('woff2')}
+			/* Critical font-face - apenas regular weight */
+			@font-face{font-family:'Inter';font-weight:400;font-style:normal;font-display:optional;src:url('/fonts/inter-400.woff2') format('woff2')}
 			
 			/* Base styles */
 			*,::before,::after{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}
-			html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
-			body{margin:0;line-height:inherit;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+			html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;scroll-behavior:smooth}
+			body{margin:0;line-height:inherit;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;background:#fff}
 			
-			/* Critical Hero styles */
+			/* Critical Hero styles - complete for LCP */
 			.hero-section{min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
 			.hero-gradient{background:linear-gradient(to bottom right,#fff,#f3f4f6,#dbeafe)}
+			
+			/* Prevent layout shift */
+			h1,h2,h3,p{margin:0}
+			button,a{cursor:pointer}
+			
+			/* Critical animation for gradient */
+			@keyframes gradient-shift{0%,100%{transform:translateX(0)}50%{transform:translateX(-50%)}}
+			.animate-gradient{animation:gradient-shift 8s ease infinite;background-size:200% 200%;will-change:transform;contain:layout style paint}
 		</style>
-		
-		<!-- Performance: DNS Prefetch (fallback for older browsers) -->
-		<link rel="dns-prefetch" href="https://fonts.googleapis.com" />
 		
 		<!-- Security Headers -->
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 		
-		<!-- Service Worker para cache -->
+		<!-- Service Worker para cache (async com requestIdleCallback) -->
 		<script>
 			if ('serviceWorker' in navigator) {
-				window.addEventListener('load', () => {
+				const registerSW = () => {
 					navigator.serviceWorker.register('/sw.js').catch(() => {});
-				});
+				};
+				if ('requestIdleCallback' in window) {
+					window.requestIdleCallback(registerSW);
+				} else {
+					setTimeout(registerSW, 2000);
+				}
 			}
 		</script>
 		

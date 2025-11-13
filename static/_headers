@@ -1,0 +1,43 @@
+# Cache headers para Netlify/Vercel
+# Documentação: https://docs.netlify.com/routing/headers/
+
+# Cache fonts imutáveis por 1 ano
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Cache assets com hash (JS/CSS) por 1 ano
+/_app/immutable/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Cache service worker por 24h (permite atualizações rápidas)
+/sw.js
+  Cache-Control: public, max-age=86400
+
+# Cache sitemap por 1 dia
+/sitemap.xml
+  Cache-Control: public, max-age=86400
+
+# Cache imagens estáticas por 1 ano
+/*.png
+  Cache-Control: public, max-age=31536000, immutable
+/*.jpg
+  Cache-Control: public, max-age=31536000, immutable
+/*.webp
+  Cache-Control: public, max-age=31536000, immutable
+/*.svg
+  Cache-Control: public, max-age=31536000, immutable
+/*.ico
+  Cache-Control: public, max-age=31536000, immutable
+
+# HTML sempre deve revalidar
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+/
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Security headers
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=()

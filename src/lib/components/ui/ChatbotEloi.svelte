@@ -570,6 +570,7 @@ RESPONDA COM TODA INTELIGÊNCIA!`;
 {/if}
 
 <style>
+	/* Note: lightningcss warnings about :global() can be ignored - Svelte processes this before lightningcss */
 	@keyframes slideInBubble {
 		from {
 			opacity: 0;

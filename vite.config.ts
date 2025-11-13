@@ -6,8 +6,8 @@ import { compression } from 'vite-plugin-compression2';
 
 export default defineConfig({
 	plugins: [
-		tailwindcss(), 
-		sveltekit(), 
+		sveltekit(), // SvelteKit SEMPRE primeiro
+		tailwindcss(), // Tailwind depois do Svelte processar
 		devtoolsJson(),
 		// Brotli compression (nível 11 = máxima compressão)
 		compression({
