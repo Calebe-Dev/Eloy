@@ -15,13 +15,13 @@ export const handle: Handle = async ({ event, resolve }) => {
 	response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
 	response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
 	
-	// Content Security Policy
+	// Content Security Policy (updated for self-hosted fonts)
 	response.headers.set(
 		'Content-Security-Policy',
 		[
 			"default-src 'self'",
-			"font-src 'self' https://fonts.gstatic.com",
-			"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+			"font-src 'self'",
+			"style-src 'self' 'unsafe-inline'",
 			"script-src 'self' 'unsafe-inline'",
 			"img-src 'self' data: https:",
 			"connect-src 'self'",

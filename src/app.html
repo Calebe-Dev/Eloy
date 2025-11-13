@@ -19,15 +19,9 @@
 		<meta name="theme-color" content="#2563eb" />
 		<meta name="msapplication-TileColor" content="#2563eb" />
 		
-		<!-- Performance: Preconnect FIRST (critical for fonts) -->
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		
-		<!-- Performance: Preload critical Inter font (400 weight) -->
-		<link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2" as="font" type="font/woff2" crossorigin />
-		
-		<!-- Web Fonts with optimal loading (display=swap prevents FOIT) -->
-		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+		<!-- Performance: Preload critical self-hosted fonts -->
+		<link rel="preload" href="/fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin />
+		<link rel="preload" href="/fonts/inter-600.woff2" as="font" type="font/woff2" crossorigin />
 		
 		<!-- Performance: DNS Prefetch (fallback for older browsers) -->
 		<link rel="dns-prefetch" href="https://fonts.googleapis.com" />

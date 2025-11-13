@@ -1,0 +1,45 @@
+/* Critical CSS - Only above-the-fold styles */
+
+/* Font fallback */
+body {
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+/* Hero section critical styles */
+.hero-container {
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: linear-gradient(135deg, #eff6ff 0%, #ffffff 50%, #faf5ff 100%);
+}
+
+.hero-title {
+	font-size: clamp(2.5rem, 8vw, 4.5rem);
+	font-weight: 700;
+	line-height: 1.1;
+	color: #111827;
+}
+
+.hero-gradient-text {
+	background: linear-gradient(to right, #2563eb, #9333ea);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+}
+
+.hero-button {
+	min-height: 48px;
+	padding: 0.75rem 2rem;
+	border-radius: 9999px;
+	font-weight: 500;
+	transition: all 0.3s;
+}
+
+@media (min-width: 640px) {
+	.hero-button {
+		min-height: 56px;
+	}
+}
