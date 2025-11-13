@@ -27,8 +27,8 @@
 <LazySection component={ProblemReveal} />
 <LazySection component={Solution} />
 <LazySection component={HowItWorks} />
-<LazySection component={Pricing} />
 <LazySection component={Stats} />
+<LazySection component={Pricing} />
 <LazySection component={FAQ} />
 <LazySection component={CTA} />
 <LazySection component={Footer} />

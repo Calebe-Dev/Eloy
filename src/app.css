@@ -91,6 +91,59 @@ body {
 	}
 }
 
+@keyframes gradient-shift {
+	0%, 100% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+}
+
+@keyframes particle-float {
+	0%, 100% {
+		transform: translate(0, 0) rotate(0deg);
+		opacity: 0.3;
+	}
+	50% {
+		transform: translate(100px, -100px) rotate(180deg);
+		opacity: 0.6;
+	}
+}
+
+@keyframes particle-float-reverse {
+	0%, 100% {
+		transform: translate(0, 0) rotate(0deg);
+		opacity: 0.4;
+	}
+	50% {
+		transform: translate(-80px, 120px) rotate(-180deg);
+		opacity: 0.7;
+	}
+}
+
+@keyframes scroll-bounce {
+	0%, 100% {
+		transform: translateY(0);
+		opacity: 1;
+	}
+	50% {
+		transform: translateY(10px);
+		opacity: 0.7;
+	}
+}
+
+@keyframes glow-pulse {
+	0%, 100% {
+		box-shadow: 0 0 20px rgba(59, 130, 246, 0.5),
+					0 0 40px rgba(147, 51, 234, 0.3);
+	}
+	50% {
+		box-shadow: 0 0 30px rgba(59, 130, 246, 0.7),
+					0 0 60px rgba(147, 51, 234, 0.5);
+	}
+}
+
 /* Use will-change sparingly for better performance */
 .animate-float {
 	animation: float 20s ease-in-out infinite;
@@ -104,6 +157,27 @@ body {
 
 .animate-pulse-slow {
 	animation: pulse-slow 15s ease-in-out infinite;
+}
+
+.animate-gradient {
+	animation: gradient-shift 8s ease infinite;
+	background-size: 200% 200%;
+}
+
+.animate-particle-float {
+	animation: particle-float 20s ease-in-out infinite;
+}
+
+.animate-particle-float-reverse {
+	animation: particle-float-reverse 25s ease-in-out infinite;
+}
+
+.animate-scroll-bounce {
+	animation: scroll-bounce 2s ease-in-out infinite;
+}
+
+.animate-glow-pulse {
+	animation: glow-pulse 3s ease-in-out infinite;
 }
 
 /* Accessibility: Respect user's motion preferences */
