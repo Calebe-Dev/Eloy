@@ -1,11 +1,11 @@
 <script lang="ts">
 	let {
-		title = 'Eloi - Chatbot Inteligente para Atendimento 24/7 | Transforme seu Atendimento',
-		description = 'Eloi é o chatbot inteligente que representa a voz da sua marca com empatia e presença constante. Atendimento automatizado 24/7, mais leads capturados e 340% de melhoria em eficiência. Teste grátis agora!',
+		title = 'Eloi - Chatbot Inteligente para Modernizar Seu Atendimento',
+		description = 'Eloi é o chatbot inteligente que moderniza o atendimento da sua empresa com tecnologia avançada e respostas precisas.',
 		canonical = 'https://eloi.com.br',
 		image = 'https://eloi.com.br/og-image.jpg',
 		type = 'website',
-		keywords = 'chatbot, atendimento automatizado, chat inteligente, IA conversacional, bot whatsapp, atendimento 24/7, automação atendimento, chatbot empresarial, bot instagram'
+		keywords = 'chatbot, atendimento automatizado, chat inteligente, IA conversacional, bot whatsapp, atendimento 24/7, automação atendimento, chatbot empresarial, chatbot para sites'
 	} = $props();
 </script>
 

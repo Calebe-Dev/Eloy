@@ -7,47 +7,89 @@
 
 	const plans = [
 		{
-			name: 'Essencial',
-			price: 199,
-			description: 'Para começar sua jornada digital',
+			name: 'Básico',
+			price: 499,
+			description: 'Perfeito para começar',
 			features: [
-				'1.000 conversas/mês',
-				'1 canal integrado',
-				'Análise de desempenho',
-				'Suporte por email'
+				'GPT-3.5 Turbo',
+				'Chatbot personalizado',
+				'Até 50 interações/mês',
+				'Base de conhecimento',
+				'Coleta de dados de leads',
+				'Redirecionamento WhatsApp/Email',
+				'Suporte completo por 3 meses'
 			],
+			extras: '+50 interações: R$ 59,90',
 			cta: 'Começar agora',
-			color: 'gray',
+			color: 'white',
 			recommended: false
 		},
 		{
 			name: 'Profissional',
-			price: 499,
-			description: 'Para empresas que querem crescer',
+			price: 699,
+			description: 'Para empresas em crescimento',
 			features: [
-				'10.000 conversas/mês',
-				'3 canais integrados',
-				'Análise avançada com relatórios',
-				'Suporte prioritário',
-				'Treinamento personalizado'
+				'GPT-4 Mini',
+				'Tudo do Básico +',
+				'Até 250 interações/mês',
+				'Dashboard Analytics avançado',
+				'Qualificação inteligente de leads',
+				'Pontuação automática de leads',
+				'Suporte prioritário por 6 meses'
 			],
 			cta: 'Começar agora',
-			color: 'blue',
+			color: 'gradient',
 			recommended: true
 		},
 		{
-			name: 'Enterprise',
-			price: null,
-			description: 'Soluções personalizadas para grandes empresas',
+			name: 'Empresarial',
+			price: 999,
+			description: 'Poder e controle total',
 			features: [
-				'Conversas ilimitadas',
+				'GPT-4',
+				'Tudo do Profissional +',
+				'Até 1.000 interações/mês',
 				'Integração com CRM',
-				'Suporte dedicado 24/7',
-				'Customizações avançadas',
-				'SLA garantido'
+				'Relatórios personalizados',
+				'Suporte 24/7',
+				'Consultoria mensal especializada'
 			],
-			cta: 'Falar com vendas',
-			color: 'gray',
+			cta: 'Começar agora',
+			color: 'purple',
+			recommended: false
+		},
+		{
+			name: 'Premium',
+			price: 1499,
+			description: 'Solução completa empresarial',
+			features: [
+				'Tudo do Empresarial +',
+				'Até 1.200 interações/mês',
+				'Até 4 atendentes WhatsApp integrados',
+				'Plataforma BI completa (Auri)',
+				'Dashboard empresarial total',
+				'Analytics avançado de interações',
+				'Gestão empresarial integrada'
+			],
+			cta: 'Começar agora',
+			color: 'dark',
+			recommended: false
+		},
+		{
+			name: 'Personalizado',
+			price: null,
+			description: 'Solução sob medida',
+			features: [
+				'Desenvolvimento customizado',
+				'Integrações específicas',
+				'Escalabilidade ilimitada',
+				'Arquitetura personalizada',
+				'Equipe dedicada',
+				'SLA garantido',
+				'Consultoria estratégica'
+			],
+			cta: 'Solicitar cotação',
+			color: 'gradient-premium',
 			recommended: false
 		}
 	];
@@ -97,10 +139,10 @@
 		</div>
 
 		<!-- Cards Grid -->
-		<div class="grid lg:grid-cols-3 gap-4 md:gap-6 max-w-6xl mx-auto">
+		<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 max-w-7xl mx-auto">
 			{#each plans as plan, index}
 				<div 
-					class="relative transition-all duration-1000 ease-out"
+					class="relative transition-all duration-1000 ease-out {plan.name === 'Personalizado' ? 'md:col-span-2 lg:col-span-1' : ''}"
 					style="
 						opacity: {Math.min(1, Math.max(0, (scrollProgress - index * 0.05) * 3))};
 						transform: translateY({Math.max(0, 40 - scrollProgress * 60)}px);
@@ -108,24 +150,21 @@
 				>
 					<!-- Card -->
 					<div 
-						class="relative h-full rounded-[2.5rem] transition-all duration-500 group"
-						class:bg-gradient-to-br={plan.recommended}
-						class:from-blue-600={plan.recommended}
-						class:via-blue-700={plan.recommended}
-						class:to-purple-700={plan.recommended}
-						class:bg-white={!plan.recommended}
-						class:border={!plan.recommended}
-						class:border-gray-200={!plan.recommended}
-						class:hover:shadow-2xl={true}
-						class:hover:scale-[1.02]={!plan.recommended}
-						class:shadow-2xl={plan.recommended}
-						class:scale-105={plan.recommended}
+						class="relative h-full rounded-[2.5rem] transition-all duration-500 group hover:shadow-2xl
+							{plan.recommended || plan.color === 'gradient' ? 'bg-gradient-to-br shadow-2xl scale-[1.03]' : ''}
+							{plan.recommended ? 'from-blue-600 via-blue-700 to-purple-700' : ''}
+							{plan.color === 'purple' ? 'bg-gradient-to-br from-purple-600 to-pink-600' : ''}
+							{plan.color === 'gradient-premium' ? 'bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 shadow-2xl' : ''}
+							{plan.color === 'dark' ? 'bg-gray-900' : ''}
+							{!plan.recommended && plan.color !== 'gradient' && plan.color !== 'dark' && plan.color !== 'purple' && plan.color !== 'gradient-premium' 
+								? 'bg-white border border-gray-200' : ''}
+							{!plan.recommended ? 'hover:scale-[1.02]' : ''}"
 					>
 						<!-- Badge Recomendado -->
 						{#if plan.recommended}
 							<div class="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
 								<div class="bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 px-5 py-2 rounded-full text-sm font-semibold shadow-lg">
-									Recomendado
+									Mais escolhido
 								</div>
 							</div>
 						{/if}
@@ -134,16 +173,14 @@
 							<!-- Header do card -->
 							<div class="mb-8">
 								<h3 
-									class="text-2xl md:text-3xl font-semibold mb-2"
-									class:text-white={plan.recommended}
-									class:text-gray-900={!plan.recommended}
+									class="text-2xl md:text-3xl font-semibold mb-2
+										{plan.recommended || plan.color === 'gradient' || plan.color === 'purple' || plan.color === 'dark' || plan.color === 'gradient-premium' ? 'text-white' : 'text-gray-900'}"
 								>
 									{plan.name}
 								</h3>
 								<p 
-									class="text-base font-light"
-									class:text-blue-100={plan.recommended}
-									class:text-gray-500={!plan.recommended}
+									class="text-base font-light
+										{plan.recommended || plan.color === 'gradient' || plan.color === 'purple' || plan.color === 'dark' || plan.color === 'gradient-premium' ? 'text-blue-100' : 'text-gray-500'}"
 								>
 									{plan.description}
 								</p>
@@ -154,33 +191,34 @@
 								{#if plan.price}
 									<div class="flex items-baseline gap-1">
 										<span 
-											class="text-sm font-medium"
-											class:text-blue-100={plan.recommended}
-											class:text-gray-500={!plan.recommended}
+											class="text-sm font-medium
+												{plan.recommended || plan.color === 'gradient' || plan.color === 'purple' || plan.color === 'dark' || plan.color === 'gradient-premium' ? 'text-blue-100' : 'text-gray-500'}"
 										>
 											R$
 										</span>
 										<span 
-											class="text-6xl md:text-7xl font-semibold tracking-tight"
-											class:text-white={plan.recommended}
-											class:text-gray-900={!plan.recommended}
+											class="text-6xl md:text-7xl font-semibold tracking-tight
+												{plan.recommended || plan.color === 'gradient' || plan.color === 'purple' || plan.color === 'dark' || plan.color === 'gradient-premium' ? 'text-white' : 'text-gray-900'}"
 										>
 											{plan.price}
 										</span>
 										<span 
-											class="text-lg font-light"
-											class:text-blue-100={plan.recommended}
-											class:text-gray-500={!plan.recommended}
+											class="text-lg font-light
+												{plan.recommended || plan.color === 'gradient' || plan.color === 'purple' || plan.color === 'dark' || plan.color === 'gradient-premium' ? 'text-blue-100' : 'text-gray-500'}"
 										>
 											/mês
 										</span>
 									</div>
+									{#if plan.extras}
+										<p class="text-sm mt-2 {plan.recommended || plan.color === 'gradient' || plan.color === 'purple' || plan.color === 'dark' || plan.color === 'gradient-premium' ? 'text-blue-200' : 'text-gray-400'}">
+											{plan.extras}
+										</p>
+									{/if}
 								{:else}
 									<div>
 										<span 
-											class="text-4xl md:text-5xl font-semibold"
-											class:text-white={plan.recommended}
-											class:text-gray-900={!plan.recommended}
+											class="text-4xl md:text-5xl font-semibold
+												{plan.color === 'gradient-premium' ? 'text-white' : 'text-gray-900'}"
 										>
 											Sob cotação
 										</span>
@@ -193,18 +231,16 @@
 								{#each plan.features as feature}
 									<li class="flex items-start gap-3">
 										<svg 
-											class="w-5 h-5 mt-0.5 flex-shrink-0" 
-											class:text-blue-200={plan.recommended}
-											class:text-green-500={!plan.recommended}
+											class="w-5 h-5 mt-0.5 flex-shrink-0
+												{plan.recommended || plan.color === 'gradient' || plan.color === 'purple' || plan.color === 'dark' || plan.color === 'gradient-premium' ? 'text-blue-200' : 'text-green-500'}" 
 											fill="currentColor" 
 											viewBox="0 0 20 20"
 										>
 											<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
 										</svg>
 										<span 
-											class="text-base leading-relaxed"
-											class:text-white={plan.recommended}
-											class:text-gray-600={!plan.recommended}
+											class="text-base leading-relaxed
+												{plan.recommended || plan.color === 'gradient' || plan.color === 'purple' || plan.color === 'dark' || plan.color === 'gradient-premium' ? 'text-white' : 'text-gray-600'}"
 										>
 											{feature}
 										</span>
@@ -214,7 +250,7 @@
 
 							<!-- CTA Button -->
 							<div class="mt-auto">
-								{#if plan.recommended}
+								{#if plan.recommended || plan.color === 'gradient' || plan.color === 'purple' || plan.color === 'dark' || plan.color === 'gradient-premium'}
 									<button 
 										class="w-full bg-white text-blue-600 hover:bg-gray-50 font-medium py-4 px-6 rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg"
 									>
@@ -241,8 +277,9 @@
 				opacity: {Math.min(1, Math.max(0, (scrollProgress - 0.3) * 3))};
 			"
 		>
-			<p class="text-gray-500 font-light text-lg">
-				Todos os planos incluem 14 dias de teste gratuito. Sem cartão de crédito necessário.
+			<p class="text-gray-500 font-light text-lg max-w-3xl mx-auto">
+				Configuração completa incluída em todos os planos. Entrega em até 15 dias úteis.
+				Sistema próprio sem dependência de terceiros.
 			</p>
 		</div>
 	</div>

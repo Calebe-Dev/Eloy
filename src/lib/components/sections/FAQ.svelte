@@ -5,19 +5,19 @@
 
 	const faqs = [
 		{
-			question: 'Como Eloi entende minha marca?',
-			answer:
-				'Você configura a essência da sua marca no painel: tom de voz, valores, produtos, estilo. Eloi aprende e evolui a cada interação, mantendo consistência total.'
-		},
+		question: 'Como Eloi entende minha marca?',
+		answer:
+			'Você nos fornece as informações da sua marca: tom de voz, valores, produtos, estilo. Nossa equipe configura o Eloi, você testa e dá feedback para aprimorarmos a configuração inicial.'
+	},
 		{
 			question: 'Qual é o tempo de ativação?',
 			answer:
 				'Menos de 15 minutos. Setup das informações, escolha dos canais, e Eloi já está representando sua marca.'
 		},
 		{
-			question: 'Posso usar em múltiplos canais?',
+			question: 'Funciona em múltiplas plataformas?',
 			answer:
-				'Sim. Web, WhatsApp, Facebook Messenger, Instagram. Escolha onde sua marca precisa estar presente.'
+				'Eloi é integrado diretamente ao seu site, coletando informações dos visitantes e redirecionando para seus canais de atendimento: WhatsApp ou email.'
 		},
 		{
 			question: 'Como monitoro as conversas?',

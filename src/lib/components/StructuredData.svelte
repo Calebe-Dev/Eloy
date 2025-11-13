@@ -16,8 +16,6 @@
 			areaServed: 'BR'
 		},
 		sameAs: [
-			'https://facebook.com/eloi',
-			'https://instagram.com/eloi',
 			'https://linkedin.com/company/eloi',
 			'https://twitter.com/eloi'
 		],
@@ -105,15 +103,15 @@
 				name: 'Eloi funciona em quais plataformas?',
 				acceptedAnswer: {
 					'@type': 'Answer',
-					text: 'Eloi se integra com WhatsApp, Instagram, Facebook Messenger, site próprio e outras plataformas de mensageria populares.'
+					text: 'Eloi funciona como chatbot integrado ao seu site, coletando dados dos clientes e redirecionando para seus canais de atendimento preferidos: WhatsApp ou email.'
 				}
 			},
 			{
 				'@type': 'Question',
-				name: 'Posso testar Eloi gratuitamente?',
+				name: 'Qual o prazo de entrega do Eloi?',
 				acceptedAnswer: {
 					'@type': 'Answer',
-					text: 'Sim! Oferecemos um período de teste gratuito para você experimentar todas as funcionalidades do Eloi antes de contratar.'
+					text: 'A entrega completa do Eloi ocorre em até 15 dias úteis. O cliente fornece as informações da marca, nossa equipe configura o chatbot, o cliente testa e dá feedback para ajustes finais antes da entrega.'
 				}
 			}
 		]

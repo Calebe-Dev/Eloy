@@ -8,22 +8,22 @@
 	const steps = [
 		{
 			number: 1,
-			title: 'Configuração Simples',
-			description: 'Você define a personalidade, produtos e tom de voz do Eloi. Pronto. Começa a trabalhar em minutos.',
+			title: 'Você nos passa as informações',
+			description: 'Fornece a personalidade, produtos e tom de voz da sua marca. Nossa equipe cuida da configuração completa do Eloi.',
 			color: 'from-blue-500 to-blue-600',
 			bgColor: 'from-blue-500/20 to-blue-600/20'
 		},
 		{
 			number: 2,
-			title: 'Aprendizado Contínuo',
-			description: 'Cada conversa melhora a próxima. Eloi se adapta, refina, evolui.',
+			title: 'Ajuste e Evolua',
+			description: 'Você experimenta o Eloi, e juntos aperfeiçoamos cada detalhe até que ele fale exatamente como a sua marca.',
 			color: 'from-purple-500 to-purple-600',
 			bgColor: 'from-purple-500/20 to-purple-600/20'
 		},
 		{
 			number: 3,
 			title: 'Integração Total',
-			description: 'Web, WhatsApp, Facebook, Instagram. Escolha seus canais. Eloi está lá.',
+			description: 'Eloi conversa com seus visitantes, coleta as informações certas e leva os contatos direto para você. Tudo flui sem esforço. Você cuida do que realmente importa: fechar negócios.',
 			color: 'from-green-500 to-green-600',
 			bgColor: 'from-green-500/20 to-green-600/20'
 		}

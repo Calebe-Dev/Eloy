@@ -10,13 +10,13 @@
 		<div class="text-center max-w-4xl mx-auto space-y-10">
 			<AnimatedBlock>
 				<h2 class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-					Pronto para conectar sua marca com mais presença?
+					Eleve seu atendimento ao próximo nível
 				</h2>
 			</AnimatedBlock>
 
 			<AnimatedBlock delay={200}>
 				<p class="text-xl md:text-2xl text-gray-600 leading-relaxed">
-					Descubra como Eloi pode transformar seu atendimento.
+					Escolha o plano ideal e revolucione o atendimento da sua empresa com Eloi.
 				</p>
 			</AnimatedBlock>
 
@@ -29,7 +29,7 @@
 
 			<AnimatedBlock delay={600}>
 				<p class="text-sm text-gray-500 pt-4">
-					✨ Sem contratos longos • Cancele quando quiser • Setup em 15 minutos
+					✨ Configuração completa incluída • Entrega em até 15 dias úteis • Sem dependência de terceiros
 				</p>
 			</AnimatedBlock>
 		</div>
