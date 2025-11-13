@@ -29,6 +29,7 @@
 	let pinWrapper: HTMLDivElement;
 	let scrollProgress = $state(0);
 	let isAnimationVisible = $state(false);
+	let mockupCompleted = $state(false);
 
 	onMount(() => {
 		let observer: IntersectionObserver | undefined;
@@ -41,6 +42,13 @@
 				(entries) => {
 					entries.forEach((entry) => {
 						isAnimationVisible = entry.isIntersecting;
+						
+						// Verifica se o mockup foi completamente visualizado
+						if (entry.isIntersecting && scrollProgress >= 0.95 && visibleCount === messages.length) {
+							mockupCompleted = true;
+							// Dispara evento customizado para indicar que o mockup foi completamente visualizado
+							window.dispatchEvent(new CustomEvent('eloi-mockup-completed'));
+						}
 					});
 				},
 				{
@@ -75,6 +83,12 @@
 			// Map progress to number of visible messages
 			const count = Math.min(messages.length, Math.max(1, Math.floor(progress * (messages.length + 0.0001)) + 1));
 			visibleCount = count;
+			
+			// Verifica se todas as mensagens foram exibidas
+			if (progress >= 0.95 && count === messages.length && isAnimationVisible) {
+				mockupCompleted = true;
+				window.dispatchEvent(new CustomEvent('eloi-mockup-completed'));
+			}
 		};
 
 		recalc();
@@ -93,21 +107,21 @@
 	<div bind:this={pinWrapper} class="relative" style={`height: ${messages.length * 90}vh`}>
 		<!-- Mobile Mockup Container (sticky, centered only within this wrapper) -->
 		<div
-			class="sticky mx-auto bg-white rounded-2xl overflow-hidden shadow-2xl"
-			style="width: 340px; box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 8px 24px rgba(0,0,0,0.1); top: calc(50vh - 310px);"
+			class="sticky mx-auto bg-white rounded-[32px] overflow-hidden shadow-2xl"
+			style="width: 340px; box-shadow: 0 20px 60px rgba(59,130,246,0.15), 0 8px 24px rgba(59,130,246,0.1); top: calc(50vh - 310px);"
 		>
-		<!-- Header - Preto com avatar de perfil -->
-		<div class="bg-black px-4 py-5 flex items-center" style="height: 90px;">
+		<!-- Header - Azul Apple com avatar de perfil -->
+		<div class="bg-gradient-to-br from-blue-500 to-blue-600 px-4 py-5 flex items-center" style="height: 90px;">
 			<div class="flex items-center gap-3">
 				<!-- Avatar circular branco com ícone de perfil -->
-				<div class="w-11 h-11 bg-white rounded-full flex items-center justify-center">
-					<svg class="w-6 h-6 text-black" fill="currentColor" viewBox="0 0 20 20">
+				<div class="w-11 h-11 bg-white/95 rounded-full flex items-center justify-center shadow-lg">
+					<svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
 						<path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
 					</svg>
 				</div>
 				<div>
 					<h3 class="text-white font-bold text-base">Eloi</h3>
-					<p class="text-gray-400 text-xs">A voz digital da sua empresa</p>
+					<p class="text-blue-100 text-xs">A voz digital da sua empresa</p>
 				</div>
 			</div>
 		</div>
@@ -117,12 +131,12 @@
 			{#each messages as message, index (message.id)}
 				<div class="w-full transition-all duration-700 ease-out {index < visibleCount ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-6 scale-95'}">
 					<div class="flex items-start gap-2">
-						<!-- Avatar miniatura circular preto -->
-						<div class="w-8 h-8 bg-black rounded-full flex items-center justify-center flex-shrink-0">
+						<!-- Avatar miniatura circular azul -->
+						<div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
 							<span class="text-white text-xs font-bold">E</span>
 						</div>
-						<!-- Bolha de mensagem cinza -->
-						<div class="bg-gray-100 px-4 py-3 rounded-2xl max-w-[85%]">
+						<!-- Bolha de mensagem azul suave -->
+						<div class="bg-blue-50 px-4 py-3 rounded-[18px] max-w-[85%] border border-blue-100">
 							<p class="text-gray-800 text-[13px] leading-relaxed">{message.text}</p>
 						</div>
 					</div>
@@ -159,9 +173,6 @@
 </div>
 
 <style>
-	/* Smooth scroll behavior */
-	:global(html) {
-		scroll-behavior: smooth;
-	}
+	/* Estilos movidos para app.css */
 </style>
 

@@ -23,6 +23,11 @@
 		<link rel="preload" href="/fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin />
 		<link rel="preload" href="/fonts/inter-600.woff2" as="font" type="font/woff2" crossorigin />
 		
+		<!-- Performance: DNS Prefetch + Preconnect para APIs -->
+		<link rel="dns-prefetch" href="https://api.openai.com" />
+		<link rel="dns-prefetch" href="https://api.resend.com" />
+		<link rel="preconnect" href="https://api.openai.com" crossorigin />
+		
 		<!-- Critical CSS inline for faster FCP -->
 		<style>
 			/* Critical font-face declarations */
@@ -46,6 +51,15 @@
 		
 		<!-- Security Headers -->
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		
+		<!-- Service Worker para cache -->
+		<script>
+			if ('serviceWorker' in navigator) {
+				window.addEventListener('load', () => {
+					navigator.serviceWorker.register('/sw.js').catch(() => {});
+				});
+			}
+		</script>
 		
 		<!-- Default meta tags (será sobrescrito pelo componente SEO) -->
 		<title>Eloi - A voz digital da sua marca</title>

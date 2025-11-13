@@ -3,6 +3,7 @@
 	import StructuredData from '$lib/components/StructuredData.svelte';
 	import Hero from '$lib/components/sections/Hero.svelte';
 	import LazySection from '$lib/components/ui/LazySection.svelte';
+	import ChatbotEloi from '$lib/components/ui/ChatbotEloi.svelte';
 	
 	// Dynamic imports para lazy loading real
 	const ChatMockup = () => import('$lib/components/ui/ChatMockup.svelte');
@@ -32,3 +33,6 @@
 <LazySection component={FAQ} />
 <LazySection component={CTA} />
 <LazySection component={Footer} />
+
+<!-- Chatbot Eloi - Só aparece após o mockup ser completado -->
+<ChatbotEloi />

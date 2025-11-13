@@ -9,23 +9,32 @@ export default defineConfig({
 		tailwindcss(), 
 		sveltekit(), 
 		devtoolsJson(),
-		// Brotli compression for better performance
+		// Brotli compression (nível 11 = máxima compressão)
 		compression({
-			include: /\.(js|css|html|json|svg)$/,
-			threshold: 1024 // Only compress files > 1KB
+			algorithm: 'brotliCompress',
+			exclude: [/\.(br)$/, /\.(gz)$/],
+			threshold: 512,
+			compressionOptions: { level: 11 }
 		})
 	],
 	build: {
-		cssCodeSplit: true, // Split CSS for better caching
-		minify: 'esbuild', // esbuild is faster and preserves animations
+		cssCodeSplit: true,
+		cssMinify: 'lightningcss', // Mais rápido que esbuild
+		minify: 'esbuild',
+		target: 'esnext',
 		rollupOptions: {
 			output: {
-				// Separate vendor code for better caching
-				manualChunks: (id) => {
-					if (id.includes('node_modules')) {
-						return 'vendor';
-					}
+				manualChunks: {
+					vendor: ['svelte']
 				}
+			}
+		}
+	},
+	css: {
+		transformer: 'lightningcss',
+		lightningcss: {
+			drafts: {
+				customMedia: true
 			}
 		}
 	}
