@@ -10,6 +10,10 @@
 </script>
 
 <svelte:head>
+	<!-- Resource Hints for Performance -->
+	<link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+	
 	<!-- Primary Meta Tags -->
 	<title>{title}</title>
 	<meta name="title" content={title} />

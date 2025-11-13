@@ -23,6 +23,10 @@ const config = {
 				// Ignore missing anchor IDs (can be added later)
 				console.warn(`Missing anchor #${id} on ${path}`);
 			}
+		},
+		// Optimize preload strategy
+		output: {
+			preloadStrategy: 'modulepreload' // Faster module preloading
 		}
 	}
 };
