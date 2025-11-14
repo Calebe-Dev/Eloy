@@ -25,6 +25,10 @@
 
 	function handleShowChatbot() {
 		openChatbotFromHero = true;
+		// Reset após um curto delay para permitir re-abertura
+		setTimeout(() => {
+			openChatbotFromHero = false;
+		}, 500);
 	}
 </script>
 

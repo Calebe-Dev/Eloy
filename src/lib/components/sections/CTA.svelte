@@ -4,19 +4,8 @@
 	import AnimatedBlock from '../ui/AnimatedBlock.svelte';
 	import Button from '../ui/Button.svelte';
 
-	const whatsappNumber = '5515996510375';
-
-	function abrirWhatsAppDemo() {
-		const mensagem = 'Olá! Gostaria de falar com o Eloi e conhecer a solução.';
-		const encodedMessage = encodeURIComponent(mensagem);
-		window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, '_blank');
-	}
-
-	function abrirWhatsAppAgendar() {
-		const mensagem = 'Olá! Gostaria de agendar uma conversa com um especialista sobre o Eloi.';
-		const encodedMessage = encodeURIComponent(mensagem);
-		window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, '_blank');
-	}
+	const whatsappDemoUrl = `/contato?msg=${encodeURIComponent('Olá! Gostaria de falar com o Eloi e conhecer a solução.')}`;
+	const whatsappAgendarUrl = `/contato?msg=${encodeURIComponent('Olá! Gostaria de agendar uma conversa com um especialista sobre o Eloi.')}`;
 </script>
 
 <Section background="gradient">
@@ -35,9 +24,9 @@
 			</AnimatedBlock>
 
 			<AnimatedBlock delay={400}>
-				<div class="flex flex-col sm:flex-row gap-4 justify-center items-center pt-6">
-					<Button variant="primary" size="lg" onclick={abrirWhatsAppDemo}>Fale com Eloi</Button>
-					<Button variant="ghost" size="lg" onclick={abrirWhatsAppAgendar}>Agendar Conversa com Especialista</Button>
+				<div class="flex flex-col sm:flex-row gap-4 justify-center">
+					<Button variant="primary" size="lg" href={whatsappDemoUrl}>Fale com Eloi</Button>
+					<Button variant="ghost" size="lg" href={whatsappAgendarUrl}>Agendar Conversa com Especialista</Button>
 				</div>
 			</AnimatedBlock>
 

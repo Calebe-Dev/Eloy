@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
 	
 	let countdown = $state(3);
 	let mensagem = $state('');
 	const whatsappNumber = '5515996510375';
 	
 	onMount(() => {
-		// Pega a mensagem da URL
-		mensagem = $page.url.searchParams.get('msg') || 'Olá! Gostaria de solicitar um orçamento para o Eloi.';
+		// Pega a mensagem da URL usando window.location
+		const params = new URLSearchParams(window.location.search);
+		mensagem = params.get('msg') || 'Olá! Gostaria de solicitar um orçamento para o Eloi.';
 		
 		const interval = setInterval(() => {
 			countdown--;

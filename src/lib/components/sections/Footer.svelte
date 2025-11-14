@@ -1,13 +1,7 @@
 <script lang="ts">
 	import Container from '../ui/Container.svelte';
 
-	const whatsappNumber = '5515996510375';
-
-	function abrirWhatsAppContato() {
-		const mensagem = 'Olá! Vim através do site e gostaria de mais informações sobre o Eloi.';
-		const encodedMessage = encodeURIComponent(mensagem);
-		window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, '_blank');
-	}
+	const whatsappContatoUrl = `/contato?msg=${encodeURIComponent('Olá! Vim através do site e gostaria de mais informações sobre o Eloi.')}`;
 </script>
 
 <footer class="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-300 py-20 md:py-24 overflow-hidden">
@@ -50,12 +44,12 @@
 					<a href="#termos" class="hover:text-blue-400 transition-all duration-300 hover:underline underline-offset-4 decoration-blue-400">
 						Termos
 					</a>
-					<button 
-						onclick={abrirWhatsAppContato} 
+					<a 
+						href={whatsappContatoUrl} 
 						class="hover:text-blue-400 transition-all duration-300 hover:underline underline-offset-4 decoration-blue-400"
 					>
 						Contato
-					</button>
+					</a>
 				</nav>
 			</div>
 

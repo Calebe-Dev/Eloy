@@ -445,10 +445,12 @@ RESPONDA COM TODA INTELIGÊNCIA!`;
 	});
 </script>
 
-{#if showWidget}
-	<div class="fixed bottom-6 right-6 z-[999999]" data-chatbot-section style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
-		<!-- Bolha de Notificação (inspirada no PHP) -->
-		{#if showBubble && !eloiOpen}
+<!-- Wrapper sempre presente para scroll -->
+<div data-chatbot-section class="pointer-events-none">
+	{#if showWidget}
+		<div class="fixed bottom-6 right-6 z-[999999] pointer-events-auto" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+			<!-- Bolha de Notificação (inspirada no PHP) -->
+			{#if showBubble && !eloiOpen}
 			<div
 				class="absolute right-0 w-[280px] bg-gradient-to-br from-blue-50 to-white rounded-3xl p-4 flex gap-3 items-center transition-all duration-300 border border-blue-100"
 				style="bottom: 80px; animation: slideInBubble 0.5s ease-out; box-shadow: 0 8px 30px rgba(96, 165, 250, 0.15);"
@@ -588,7 +590,8 @@ RESPONDA COM TODA INTELIGÊNCIA!`;
 			E
 		</button>
 	</div>
-{/if}
+	{/if}
+</div>
 
 <style>
 	/* Note: lightningcss warnings about :global() can be ignored - Svelte processes this before lightningcss */
