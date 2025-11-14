@@ -105,36 +105,6 @@
 <div class="w-full py-16 md:py-24 lg:py-32 {className}">
 	<!-- Pin wrapper: controls how long the mockup stays centered -->
 	<div bind:this={pinWrapper} class="relative" style={`height: ${messages.length * 90}vh`}>
-		
-		<!-- Indicador de scroll lateral (desktop only) -->
-		{#if isAnimationVisible}
-			<div class="hidden lg:block fixed left-8 top-1/2 -translate-y-1/2 z-30">
-				<div class="flex flex-col items-center gap-4">
-					<!-- Texto -->
-					<span 
-						class="text-gray-500 text-sm font-semibold tracking-widest uppercase"
-						style="writing-mode: vertical-rl; transform: rotate(180deg);"
-					>
-						Continue rolando
-					</span>
-					
-					<!-- Barra de progresso vertical -->
-					<div class="relative w-1 h-48 bg-gray-200 rounded-full overflow-hidden">
-						<div 
-							class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-blue-500 via-purple-500 to-blue-400 transition-all duration-300"
-							style={`height: ${scrollProgress * 100}%`}
-						></div>
-					</div>
-					
-					<!-- Contador de mensagens -->
-					<div class="flex flex-col items-center gap-1 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow-sm">
-						<span class="text-gray-900 text-lg font-bold">{visibleCount}</span>
-						<span class="text-gray-500 text-xs">de {messages.length}</span>
-					</div>
-				</div>
-			</div>
-		{/if}
-		
 		<!-- Mobile Mockup Container (sticky, centered only within this wrapper) -->
 		<div
 			class="sticky mx-auto bg-white rounded-[32px] overflow-hidden shadow-2xl"
