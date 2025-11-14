@@ -27,12 +27,16 @@
 	let messages: { text: string; user: boolean }[] = $state([]);
 	let loading = $state(false);
 	let messagesContainer = $state<HTMLDivElement>();
+	let userClickedButton = $state(false); // Track se usuário clicou no botão
 
 	// Observa mudanças no forceOpen
 	$effect(() => {
 		if (forceOpen && !eloiOpen) {
+			userClickedButton = true; // Marca que usuário clicou
+			showWidget = true; // Mostra widget imediatamente
 			eloiOpen = true;
 			showBubble = false;
+			chatbotReady.set(true); // Marca como pronto para não mostrar hint
 			setTimeout(() => {
 				const inputEl = document.getElementById('eloi-input') as HTMLInputElement;
 				if (inputEl) inputEl.focus();
@@ -421,15 +425,18 @@ RESPONDA COM TODA INTELIGÊNCIA!`;
 	onMount(() => {
 		// Aguarda o evento de mockup completado
 		const handleMockupCompleted = () => {
-			setTimeout(() => {
-				showWidget = true;
-				// Mostra a bolha 2 segundos após o widget aparecer
+			// Só mostra widget automaticamente se usuário não clicou no botão
+			if (!userClickedButton) {
 				setTimeout(() => {
-					showBubble = true;
-					// Atualiza a store para mostrar o hint
-					chatbotReady.set(true);
-				}, 2000);
-			}, 1000);
+					showWidget = true;
+					// Mostra a bolha 2 segundos após o widget aparecer
+					setTimeout(() => {
+						showBubble = true;
+						// Atualiza a store para mostrar o hint
+						chatbotReady.set(true);
+					}, 2000);
+				}, 1000);
+			}
 		};
 
 		window.addEventListener('eloi-mockup-completed', handleMockupCompleted);

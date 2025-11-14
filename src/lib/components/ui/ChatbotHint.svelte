@@ -11,20 +11,25 @@
 	let visible = $state(false);
 	let closing = $state(false);
 	let hideTimer: ReturnType<typeof setTimeout>;
+	let hasShown = $state(false); // Previne mostrar múltiplas vezes
 
 	// Observa quando o chatbot fica pronto
 	$effect(() => {
-		if ($chatbotReady && !visible) {
+		// Só mostra hint se chatbot ficou pronto naturalmente (não via botão) e ainda não mostrou
+		if ($chatbotReady && !visible && !hasShown) {
 			// Aguarda 1 segundo após o chatbot aparecer para mostrar o hint
 			setTimeout(() => {
-				visible = true;
-				// Agenda o fechamento
-				hideTimer = setTimeout(() => {
-					closing = true;
-					setTimeout(() => {
-						visible = false;
-					}, 300);
-				}, duration);
+				if (!hasShown) { // Verificação dupla
+					hasShown = true;
+					visible = true;
+					// Agenda o fechamento
+					hideTimer = setTimeout(() => {
+						closing = true;
+						setTimeout(() => {
+							visible = false;
+						}, 300);
+					}, duration);
+				}
 			}, 1000);
 		}
 	});
