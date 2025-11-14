@@ -32,7 +32,7 @@
 
 {#if visible}
 	<div
-		class="fixed left-4 top-4 z-50 animate-bounce-slow"
+		class="fixed right-4 top-4 z-50 animate-bounce-slow"
 		class:animate-fade-out={scrolled}
 		role="status"
 		aria-live="polite"
@@ -72,9 +72,11 @@
 	@keyframes fade-out {
 		from {
 			opacity: 1;
+			transform: translateX(0);
 		}
 		to {
 			opacity: 0;
+			transform: translateX(2rem);
 		}
 	}
 

@@ -1,31 +1,37 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { chatbotReady } from '$lib/stores/chatbot';
 
 	interface Props {
-		delay?: number;
 		duration?: number;
 	}
 
-	let { delay = 3000, duration = 6000 }: Props = $props();
+	let { duration = 6000 }: Props = $props();
 
 	let visible = $state(false);
 	let closing = $state(false);
+	let hideTimer: ReturnType<typeof setTimeout>;
+
+	// Observa quando o chatbot fica pronto
+	$effect(() => {
+		if ($chatbotReady && !visible) {
+			// Aguarda 1 segundo após o chatbot aparecer para mostrar o hint
+			setTimeout(() => {
+				visible = true;
+				// Agenda o fechamento
+				hideTimer = setTimeout(() => {
+					closing = true;
+					setTimeout(() => {
+						visible = false;
+					}, 300);
+				}, duration);
+			}, 1000);
+		}
+	});
 
 	onMount(() => {
-		const showTimer = setTimeout(() => {
-			visible = true;
-		}, delay);
-
-		const hideTimer = setTimeout(() => {
-			closing = true;
-			setTimeout(() => {
-				visible = false;
-			}, 300);
-		}, delay + duration);
-
 		return () => {
-			clearTimeout(showTimer);
-			clearTimeout(hideTimer);
+			if (hideTimer) clearTimeout(hideTimer);
 		};
 	});
 
@@ -39,7 +45,7 @@
 
 {#if visible}
 	<div
-		class="fixed left-4 top-4 z-50 animate-fade-in"
+		class="fixed right-4 top-20 z-50 animate-fade-in"
 		class:animate-fade-out={closing}
 		role="alert"
 		aria-live="polite"
@@ -83,7 +89,7 @@
 	@keyframes fade-in {
 		from {
 			opacity: 0;
-			transform: translateX(-2rem);
+			transform: translateX(2rem);
 		}
 		to {
 			opacity: 1;
@@ -98,7 +104,7 @@
 		}
 		to {
 			opacity: 0;
-			transform: translateX(-2rem);
+			transform: translateX(2rem);
 		}
 	}
 

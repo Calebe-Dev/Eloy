@@ -2,8 +2,15 @@
 	import { onMount } from 'svelte';
 	import Button from '../ui/Button.svelte';
 
+	const whatsappNumber = '5515996510375';
+
 	let sectionElement: HTMLElement;
 	let scrollProgress = $state(0);
+
+	function abrirWhatsApp(mensagem: string) {
+		const encodedMessage = encodeURIComponent(mensagem);
+		window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, '_blank');
+	}
 
 	const plans = [
 		{
@@ -251,13 +258,15 @@
 							<!-- CTA Button -->
 							<div class="mt-auto">
 								{#if plan.recommended || plan.color === 'gradient' || plan.color === 'purple' || plan.color === 'dark' || plan.color === 'gradient-premium'}
-									<button 
+									<button
+										onclick={() => abrirWhatsApp(`Olá! Tenho interesse no plano ${plan.name} do Eloi (R$ ${plan.price || 'sob cotação'}/mês). Gostaria de mais informações.`)}
 										class="w-full bg-white text-blue-600 hover:bg-gray-50 font-medium py-4 px-6 rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg"
 									>
 										{plan.cta}
 									</button>
 								{:else}
-									<button 
+									<button
+										onclick={() => abrirWhatsApp(`Olá! Tenho interesse no plano ${plan.name} do Eloi (R$ ${plan.price || 'sob cotação'}/mês). Gostaria de mais informações.`)}
 										class="w-full bg-gray-900 text-white hover:bg-gray-800 font-medium py-4 px-6 rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95"
 									>
 										{plan.cta}

@@ -2,6 +2,37 @@
 	import Button from '../ui/Button.svelte';
 	import Container from '../ui/Container.svelte';
 	import AnimatedBlock from '../ui/AnimatedBlock.svelte';
+
+	interface Props {
+		onShowChatbot?: () => void;
+	}
+
+	let { onShowChatbot }: Props = $props();
+
+	function scrollToChatbot(smooth = false) {
+		const chatbotElement = document.querySelector('[data-chatbot-section]');
+		if (chatbotElement) {
+			// Marca que é um scroll programático (não manual)
+			sessionStorage.setItem('programmatic-scroll', 'true');
+			
+			chatbotElement.scrollIntoView({ 
+				behavior: smooth ? 'smooth' : 'auto',
+				block: 'center'
+			});
+			
+			// Remove flag após animação completar
+			setTimeout(() => {
+				sessionStorage.removeItem('programmatic-scroll');
+			}, smooth ? 2000 : 100);
+		}
+	}
+
+	function openChatbotInHero() {
+		// Chama a função para abrir o chatbot diretamente
+		if (onShowChatbot) {
+			onShowChatbot();
+		}
+	}
 </script>
 
 <div class="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -185,8 +216,22 @@
 
 				<AnimatedBlock delay={600}>
 					<div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center pt-2 sm:pt-4 max-w-md sm:max-w-none mx-auto px-4 sm:px-0">
-						<Button variant="primary" size="lg" class="w-full sm:w-auto min-h-[48px] sm:min-h-[56px] text-base sm:text-lg">Conheça Eloi</Button>
-						<Button variant="secondary" size="lg" class="w-full sm:w-auto min-h-[48px] sm:min-h-[56px] text-base sm:text-lg">Ver demonstração</Button>
+						<Button 
+							variant="primary" 
+							size="lg" 
+							class="w-full sm:w-auto min-h-[48px] sm:min-h-[56px] text-base sm:text-lg"
+							onclick={openChatbotInHero}
+						>
+							Conheça Eloi
+						</Button>
+						<Button 
+							variant="secondary" 
+							size="lg" 
+							class="w-full sm:w-auto min-h-[48px] sm:min-h-[56px] text-base sm:text-lg"
+							onclick={() => scrollToChatbot(true)}
+						>
+							Ver demonstração
+						</Button>
 					</div>
 				</AnimatedBlock>
 			</div>

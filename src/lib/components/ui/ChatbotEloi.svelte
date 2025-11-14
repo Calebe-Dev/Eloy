@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { chatbotReady } from '$lib/stores/chatbot';
 
 	type Step = 'name' | 'chat' | 'waiting_phone' | 'waiting_email' | 'finished';
 	
@@ -9,6 +10,12 @@
 		email?: string;
 		interesse?: string;
 	}
+
+	interface Props {
+		forceOpen?: boolean;
+	}
+
+	let { forceOpen = false }: Props = $props();
 
 	let eloiOpen = $state(false);
 	let showWidget = $state(false);
@@ -20,6 +27,18 @@
 	let messages: { text: string; user: boolean }[] = $state([]);
 	let loading = $state(false);
 	let messagesContainer = $state<HTMLDivElement>();
+
+	// Observa mudanças no forceOpen
+	$effect(() => {
+		if (forceOpen && !eloiOpen) {
+			eloiOpen = true;
+			showBubble = false;
+			setTimeout(() => {
+				const inputEl = document.getElementById('eloi-input') as HTMLInputElement;
+				if (inputEl) inputEl.focus();
+			}, 100);
+		}
+	});
 
 	function containsName(text: string) {
 		return (
@@ -407,6 +426,8 @@ RESPONDA COM TODA INTELIGÊNCIA!`;
 				// Mostra a bolha 2 segundos após o widget aparecer
 				setTimeout(() => {
 					showBubble = true;
+					// Atualiza a store para mostrar o hint
+					chatbotReady.set(true);
 				}, 2000);
 			}, 1000);
 		};
@@ -425,7 +446,7 @@ RESPONDA COM TODA INTELIGÊNCIA!`;
 </script>
 
 {#if showWidget}
-	<div class="fixed bottom-6 right-6 z-[999999]" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+	<div class="fixed bottom-6 right-6 z-[999999]" data-chatbot-section style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
 		<!-- Bolha de Notificação (inspirada no PHP) -->
 		{#if showBubble && !eloiOpen}
 			<div
