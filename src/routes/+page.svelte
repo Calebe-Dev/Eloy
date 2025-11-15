@@ -18,6 +18,7 @@
 	const Pricing = () => import('$lib/components/sections/Pricing.svelte');
 	const Stats = () => import('$lib/components/sections/Stats.svelte');
 	const FAQ = () => import('$lib/components/sections/FAQ.svelte');
+	const DevelopedBy = () => import('$lib/components/sections/DevelopedBy.svelte');
 	const CTA = () => import('$lib/components/sections/CTA.svelte');
 	const Footer = () => import('$lib/components/sections/Footer.svelte');
 
@@ -126,6 +127,8 @@
 	scrollThreshold={3800}
 	gradient="from-cyan-600 to-blue-600"
 />
+
+<LazySection component={DevelopedBy} />
 
 <LazySection component={CTA} />
 <LazySection component={Footer} />
