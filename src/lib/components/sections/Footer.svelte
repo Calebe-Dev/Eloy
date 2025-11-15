@@ -73,7 +73,7 @@
 						© 2027 Eloi. Todos os direitos reservados.
 					</p>
 					<p class="text-gray-600 text-xs">
-						Powered by AI • Grupo OC - OC Digital
+						Powered by Grupo OC - OC Digital, pessoas que inovam
 					</p>
 				</div>
 
