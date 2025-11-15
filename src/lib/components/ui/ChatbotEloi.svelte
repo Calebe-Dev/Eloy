@@ -69,6 +69,91 @@
 		}, 10);
 	}
 
+	// 📊 SISTEMA DE LOGS - Salvar todas as interações
+	function saveInteractionLog(interactionData: any) {
+		try {
+			const logs = JSON.parse(localStorage.getItem('eloi_interactions') || '[]');
+			const newLog = {
+				id: `int_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+				...interactionData,
+				timestamp: new Date().toISOString(),
+				data_hora_br: new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+				user_agent: navigator.userAgent,
+				url: window.location.href
+			};
+			logs.push(newLog);
+			localStorage.setItem('eloi_interactions', JSON.stringify(logs, null, 2));
+			console.log('📊 Interação salva:', newLog.id);
+			return newLog.id;
+		} catch (error) {
+			console.error('❌ Erro ao salvar log de interação:', error);
+			return null;
+		}
+	}
+
+	// 💾 Salvar lead no localStorage (REDUNDÂNCIA)
+	async function saveLeadToLocalStorage(leadData: any) {
+		try {
+			const leads = JSON.parse(localStorage.getItem('eloi_leads') || '[]');
+			const newLead = {
+				id: `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+				...leadData,
+				timestamp: new Date().toISOString(),
+				data_hora_br: new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+				user_agent: navigator.userAgent,
+				url: window.location.href,
+				email_sent: false,
+				email_attempts: 0
+			};
+			leads.push(newLead);
+			localStorage.setItem('eloi_leads', JSON.stringify(leads, null, 2));
+			// Backup individual
+			localStorage.setItem(`eloi_lead_${newLead.id}`, JSON.stringify(newLead, null, 2));
+			console.log('💾 Lead salvo em localStorage:', newLead.id);
+			console.log('📊 Total de leads salvos:', leads.length);
+			return newLead.id;
+		} catch (error) {
+			console.error('❌ Erro ao salvar lead no localStorage:', error);
+			// Fallback para sessionStorage
+			try {
+				sessionStorage.setItem(`eloi_lead_backup_${Date.now()}`, JSON.stringify(leadData));
+				console.log('💾 Lead salvo em sessionStorage (fallback)');
+			} catch (e) {
+				console.error('❌ Erro crítico ao salvar lead:', e);
+			}
+			return null;
+		}
+	}
+
+	// ✅ Atualizar status de envio de email
+	async function updateLeadEmailStatus(leadId: string, emailSent: boolean, attempts: number) {
+		try {
+			const leads = JSON.parse(localStorage.getItem('eloi_leads') || '[]');
+			const updatedLeads = leads.map((lead: any) => {
+				if (lead.id === leadId) {
+					return {
+						...lead,
+						email_sent: emailSent,
+						email_attempts: attempts,
+						email_sent_at: emailSent ? new Date().toISOString() : undefined
+					};
+				}
+				return lead;
+			});
+			localStorage.setItem('eloi_leads', JSON.stringify(updatedLeads, null, 2));
+			// Atualizar backup individual
+			const individualLead = JSON.parse(localStorage.getItem(`eloi_lead_${leadId}`) || '{}');
+			if (individualLead.id) {
+				individualLead.email_sent = emailSent;
+				individualLead.email_attempts = attempts;
+				individualLead.email_sent_at = emailSent ? new Date().toISOString() : undefined;
+				localStorage.setItem(`eloi_lead_${leadId}`, JSON.stringify(individualLead, null, 2));
+			}
+		} catch (error) {
+			console.error('❌ Erro ao atualizar status do email:', error);
+		}
+	}
+
 	async function sendLeadToComercial(
 		nome: string,
 		telefone: string,
@@ -76,25 +161,39 @@
 		contexto: string,
 		historico: string
 	) {
+		const leadData = {
+			nome,
+			telefone,
+			email,
+			contexto,
+			historico,
+			data_hora: new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
+		};
+
+		// 🔥 REDUNDÂNCIA 1: Salvar IMEDIATAMENTE no localStorage ANTES de tentar enviar email
+		const leadId = await saveLeadToLocalStorage(leadData);
+		console.log('✅ REDUNDÂNCIA ATIVADA - Lead salvo localmente:', leadId);
+
+		// Salvar também como interação completa
+		saveInteractionLog({
+			type: 'lead_captured',
+			lead_id: leadId,
+			...leadData
+		});
+
 		try {
-			// Enviar direto para Resend via client-side
 			const RESEND_API_KEY = import.meta.env.VITE_RESEND_API_KEY;
 			const LEAD_EMAIL = import.meta.env.VITE_LEAD_EMAIL || 'bruno.grupooc@gmail.com';
 			
 			if (!RESEND_API_KEY) {
 				console.warn('⚠️ RESEND_API_KEY não configurada');
-				console.log('✅ Lead capturado:', { nome, telefone, email, contexto });
+				console.log('✅ Lead capturado (apenas localStorage):', leadData);
+				console.log('📋 Exporte os leads digitando: exportLeads()');
+				// Expor função global para exportar leads
+				(window as any).exportLeads = exportLeadsToJSON;
+				(window as any).exportInteractions = exportInteractionsToJSON;
 				return true;
 			}
-
-			const leadData = {
-				nome,
-				telefone,
-				email,
-				contexto,
-				historico,
-				data_hora: new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
-			};
 
 			const emailText = `🔥 NOVO LEAD QUALIFICADO
 
@@ -116,39 +215,109 @@ ${historico}
 
 ⏰ Data/Hora: ${leadData.data_hora}
 🤖 Capturado por: Eloi
+💾 ID Lead: ${leadId}
 🚨 AÇÃO IMEDIATA: Entre em contato!
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
 
-			const response = await fetch('https://api.resend.com/emails', {
-				method: 'POST',
-				headers: {
-					'Authorization': `Bearer ${RESEND_API_KEY}`,
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					from: 'Eloi <onboarding@resend.dev>',
-					to: [LEAD_EMAIL],
-					subject: `🔥 LEAD QUENTE - Eloi - ${nome}`,
-					text: emailText
-				})
-			});
+			// 🔥 REDUNDÂNCIA 2: Múltiplas tentativas de envio (retry com exponential backoff)
+			let emailSent = false;
+			let attempts = 0;
+			const maxAttempts = 3;
 
-			if (!response.ok) {
-				const error = await response.json();
-				console.error('Erro ao enviar email:', error);
-				console.log('✅ Lead capturado (email falhou):', leadData);
-				return true;
+			while (!emailSent && attempts < maxAttempts) {
+				attempts++;
+				console.log(`📧 Tentativa ${attempts}/${maxAttempts} de envio de email...`);
+
+				try {
+					const response = await fetch('https://api.resend.com/emails', {
+						method: 'POST',
+						headers: {
+							'Authorization': `Bearer ${RESEND_API_KEY}`,
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({
+							from: 'Eloi <onboarding@resend.dev>',
+							to: [LEAD_EMAIL],
+							subject: `🔥 LEAD QUENTE - Eloi - ${nome}`,
+							text: emailText
+						})
+					});
+
+					if (!response.ok) {
+						const error = await response.json();
+						console.error(`❌ Tentativa ${attempts} falhou:`, error);
+						
+						if (attempts < maxAttempts) {
+							// Aguardar antes de tentar novamente (exponential backoff: 1s, 2s, 3s)
+							await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
+						}
+					} else {
+						const data = await response.json();
+						console.log(`✅ Email enviado com sucesso na tentativa ${attempts}:`, data);
+						emailSent = true;
+						
+						// Atualizar status no localStorage
+						if (leadId) {
+							await updateLeadEmailStatus(leadId, true, attempts);
+						}
+					}
+				} catch (fetchError) {
+					console.error(`❌ Erro na tentativa ${attempts}:`, fetchError);
+					
+					if (attempts < maxAttempts) {
+						await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
+					}
+				}
 			}
 
-			const data = await response.json();
-			console.log('✅ Lead enviado com sucesso:', data);
+			if (!emailSent) {
+				console.error('❌ Todas as tentativas de envio falharam');
+				console.log('✅ Mas o lead está SALVO no localStorage com ID:', leadId);
+				console.log('📋 Exporte os leads digitando: exportLeads()');
+				// Atualizar com falha
+				if (leadId) {
+					await updateLeadEmailStatus(leadId, false, attempts);
+				}
+			}
+
+			// Expor funções globais
+			(window as any).exportLeads = exportLeadsToJSON;
+			(window as any).exportInteractions = exportInteractionsToJSON;
+
 			return true;
 		} catch (error) {
-			console.error('Erro ao enviar lead:', error);
-			console.log('✅ Lead capturado:', { nome, telefone, email, contexto });
+			console.error('❌ Erro crítico ao enviar lead:', error);
+			console.log('✅ Mas o lead está SALVO no localStorage com ID:', leadId);
+			console.log('📋 Exporte os leads digitando: exportLeads()');
+			(window as any).exportLeads = exportLeadsToJSON;
+			(window as any).exportInteractions = exportInteractionsToJSON;
 			return true;
 		}
+	}
+
+	// 📥 Exportar leads para JSON
+	function exportLeadsToJSON() {
+		const leads = localStorage.getItem('eloi_leads');
+		const blob = new Blob([leads || '[]'], { type: 'application/json' });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = `eloi_leads_${new Date().toISOString().split('T')[0]}.json`;
+		a.click();
+		console.log('✅ Leads exportados com sucesso!');
+	}
+
+	// 📥 Exportar todas as interações para JSON
+	function exportInteractionsToJSON() {
+		const interactions = localStorage.getItem('eloi_interactions');
+		const blob = new Blob([interactions || '[]'], { type: 'application/json' });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = `eloi_interactions_${new Date().toISOString().split('T')[0]}.json`;
+		a.click();
+		console.log('✅ Interações exportadas com sucesso!');
 	}
 
 	async function sendAIMessage(
@@ -328,6 +497,14 @@ RESPONDA COM TODA INTELIGÊNCIA!`;
 
 	function toggle() {
 		eloiOpen = !eloiOpen;
+		
+		// 📊 LOG: Chatbot aberto/fechado
+		saveInteractionLog({
+			type: eloiOpen ? 'chatbot_opened' : 'chatbot_closed',
+			user_name: data.nome || 'Anônimo',
+			current_step: step
+		});
+
 		if (eloiOpen) {
 			// Fecha a bolha ao abrir o chat
 			showBubble = false;
@@ -344,6 +521,15 @@ RESPONDA COM TODA INTELIGÊNCIA!`;
 		const text = input.trim();
 		addMessage(text, true);
 		input = '';
+
+		// 📊 LOG: Salvar interação do usuário
+		saveInteractionLog({
+			type: 'user_message',
+			step: step,
+			message: text,
+			user_name: data.nome || 'Anônimo',
+			conversation_history: history.slice(-10) // Últimas 10 mensagens
+		});
 
 		try {
 			if (step === 'name') {
@@ -366,6 +552,14 @@ RESPONDA COM TODA INTELIGÊNCIA!`;
 			} else if (step === 'waiting_phone') {
 				if (isPhoneNumber(text)) {
 					data.telefone = text.replace(/\D/g, '');
+					
+					// 📊 LOG: Telefone capturado
+					saveInteractionLog({
+						type: 'phone_captured',
+						user_name: data.nome || 'Anônimo',
+						phone: data.telefone
+					});
+					
 					step = 'waiting_email';
 					await new Promise(resolve => setTimeout(resolve, 600));
 					addMessage('Perfeito! Agora me passa seu email:');
@@ -376,6 +570,14 @@ RESPONDA COM TODA INTELIGÊNCIA!`;
 			} else if (step === 'waiting_email') {
 				if (isEmail(text)) {
 					data.email = text;
+					
+					// 📊 LOG: Email capturado
+					saveInteractionLog({
+						type: 'email_captured',
+						user_name: data.nome || 'Anônimo',
+						email: data.email
+					});
+					
 					loading = true;
 					
 					await sendLeadToComercial(
@@ -423,6 +625,12 @@ RESPONDA COM TODA INTELIGÊNCIA!`;
 	}
 
 	onMount(() => {
+		// 📊 LOG: Sessão iniciada
+		saveInteractionLog({
+			type: 'session_started',
+			referrer: document.referrer || 'direct'
+		});
+
 		// Aguarda o evento de mockup completado
 		const handleMockupCompleted = () => {
 			// Só mostra widget automaticamente se usuário não clicou no botão
@@ -445,6 +653,23 @@ RESPONDA COM TODA INTELIGÊNCIA!`;
 		if (messages.length === 0) {
 			addMessage(startMessage);
 		}
+
+		// Expor funções globais no console
+		(window as any).exportLeads = exportLeadsToJSON;
+		(window as any).exportInteractions = exportInteractionsToJSON;
+		(window as any).viewStats = () => {
+			const leads = JSON.parse(localStorage.getItem('eloi_leads') || '[]');
+			const interactions = JSON.parse(localStorage.getItem('eloi_interactions') || '[]');
+			console.log('📊 ESTATÍSTICAS ELOI:');
+			console.log(`📧 Total de leads capturados: ${leads.length}`);
+			console.log(`✅ Emails enviados com sucesso: ${leads.filter((l: any) => l.email_sent).length}`);
+			console.log(`❌ Emails que falharam: ${leads.filter((l: any) => !l.email_sent).length}`);
+			console.log(`💬 Total de interações: ${interactions.length}`);
+			console.log('\n📋 Para exportar, digite:');
+			console.log('  exportLeads() - Exporta leads');
+			console.log('  exportInteractions() - Exporta todas as interações');
+		};
+		console.log('🤖 Eloi carregado! Digite viewStats() para ver estatísticas');
 
 		return () => {
 			window.removeEventListener('eloi-mockup-completed', handleMockupCompleted);
