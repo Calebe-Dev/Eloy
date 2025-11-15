@@ -182,13 +182,27 @@
 		});
 
 		try {
+			console.log('\n🔍 ========== INÍCIO DO PROCESSO DE ENVIO DE EMAIL ==========');
+			console.log('⏰ Timestamp:', new Date().toISOString());
+			console.log('📧 Lead ID:', leadId);
+			
 			const RESEND_API_KEY = import.meta.env.VITE_RESEND_API_KEY;
 			const LEAD_EMAIL = import.meta.env.VITE_LEAD_EMAIL || 'bruno.grupooc@gmail.com';
 			
+			// Verificação detalhada de variáveis de ambiente
+			console.log('🔑 Verificando variáveis de ambiente...');
+			console.log('  - VITE_RESEND_API_KEY:', RESEND_API_KEY ? `Configurada (${RESEND_API_KEY.substring(0, 8)}...)` : '❌ NÃO CONFIGURADA');
+			console.log('  - VITE_LEAD_EMAIL:', LEAD_EMAIL);
+			
 			if (!RESEND_API_KEY) {
-				console.warn('⚠️ RESEND_API_KEY não configurada');
-				console.log('✅ Lead capturado (apenas localStorage):', leadData);
+				console.error('\n❌ ERRO CRÍTICO: RESEND_API_KEY não configurada!');
+				console.error('📝 Ação necessária:');
+				console.error('  1. Criar arquivo .env na raiz do projeto');
+				console.error('  2. Adicionar: VITE_RESEND_API_KEY=sua_chave_aqui');
+				console.error('  3. Reiniciar o servidor de desenvolvimento');
+				console.log('\n✅ Lead capturado (apenas localStorage):', leadData);
 				console.log('📋 Exporte os leads digitando: exportLeads()');
+				console.log('========== FIM (SEM ENVIO DE EMAIL) ==========\n');
 				// Expor função global para exportar leads
 				(window as any).exportLeads = exportLeadsToJSON;
 				(window as any).exportInteractions = exportInteractionsToJSON;
@@ -227,58 +241,162 @@ ${historico}
 
 			while (!emailSent && attempts < maxAttempts) {
 				attempts++;
-				console.log(`📧 Tentativa ${attempts}/${maxAttempts} de envio de email...`);
+				console.log(`\n📧 ========== TENTATIVA ${attempts}/${maxAttempts} ==========`);
+				console.log('⏰ Timestamp tentativa:', new Date().toISOString());
 
 				try {
+					const requestBody = {
+						from: 'Eloi <onboarding@resend.dev>',
+						to: [LEAD_EMAIL],
+						subject: `🔥 LEAD QUENTE - Eloi - ${nome}`,
+						text: emailText
+					};
+					
+					console.log('📤 Enviando request para Resend API...');
+					console.log('  - Endpoint: https://api.resend.com/emails');
+					console.log('  - From:', requestBody.from);
+					console.log('  - To:', requestBody.to);
+					console.log('  - Subject:', requestBody.subject);
+					console.log('  - Body length:', emailText.length, 'caracteres');
+					
+					const startTime = performance.now();
 					const response = await fetch('https://api.resend.com/emails', {
 						method: 'POST',
 						headers: {
 							'Authorization': `Bearer ${RESEND_API_KEY}`,
 							'Content-Type': 'application/json'
 						},
-						body: JSON.stringify({
-							from: 'Eloi <onboarding@resend.dev>',
-							to: [LEAD_EMAIL],
-							subject: `🔥 LEAD QUENTE - Eloi - ${nome}`,
-							text: emailText
-						})
+						body: JSON.stringify(requestBody)
 					});
+					const endTime = performance.now();
+					const duration = (endTime - startTime).toFixed(2);
+					
+					console.log(`📊 Response recebido em ${duration}ms`);
+					console.log('  - Status:', response.status, response.statusText);
+					console.log('  - Headers:', Object.fromEntries(response.headers.entries()));
 
 					if (!response.ok) {
-						const error = await response.json();
-						console.error(`❌ Tentativa ${attempts} falhou:`, error);
+						let errorDetails;
+						try {
+							errorDetails = await response.json();
+						} catch (parseError) {
+							const textError = await response.text();
+							errorDetails = { raw_error: textError, parse_error: parseError };
+						}
+						
+						console.error(`\n❌ TENTATIVA ${attempts} FALHOU`);
+						console.error('📋 Detalhes do erro:');
+						console.error('  - HTTP Status:', response.status, response.statusText);
+						console.error('  - Error Response:', errorDetails);
+						
+						// Diagnóstico específico por tipo de erro
+						if (response.status === 401) {
+							console.error('\n🔐 ERRO DE AUTENTICAÇÃO (401):');
+							console.error('  - API Key pode estar inválida ou expirada');
+							console.error('  - Verifique se VITE_RESEND_API_KEY está correta');
+							console.error('  - Acesse: https://resend.com/api-keys');
+						} else if (response.status === 403) {
+							console.error('\n🚫 ERRO DE PERMISSÃO (403):');
+							console.error('  - API Key não tem permissão para enviar emails');
+							console.error('  - Verifique as configurações da conta Resend');
+						} else if (response.status === 422) {
+							console.error('\n📝 ERRO DE VALIDAÇÃO (422):');
+							console.error('  - Dados do email inválidos');
+							console.error('  - Verifique formato do email destinatário:', LEAD_EMAIL);
+							console.error('  - Error details:', errorDetails);
+						} else if (response.status === 429) {
+							console.error('\n⏱️ RATE LIMIT EXCEDIDO (429):');
+							console.error('  - Muitos emails enviados em pouco tempo');
+							console.error('  - Aguarde alguns minutos antes de tentar novamente');
+						} else if (response.status >= 500) {
+							console.error('\n🔥 ERRO DO SERVIDOR RESEND (5xx):');
+							console.error('  - Problema no servidor da Resend');
+							console.error('  - Verifique status: https://resend.com/status');
+						}
 						
 						if (attempts < maxAttempts) {
-							// Aguardar antes de tentar novamente (exponential backoff: 1s, 2s, 3s)
-							await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
+							const waitTime = 1000 * attempts;
+							console.log(`⏳ Aguardando ${waitTime}ms antes da próxima tentativa...`);
+							await new Promise(resolve => setTimeout(resolve, waitTime));
+						} else {
+							console.error('\n❌ Todas as tentativas esgotadas!');
 						}
 					} else {
-						const data = await response.json();
-						console.log(`✅ Email enviado com sucesso na tentativa ${attempts}:`, data);
+						let responseData;
+						try {
+							responseData = await response.json();
+						} catch (parseError) {
+							console.warn('⚠️ Não foi possível parsear resposta JSON, mas email foi enviado');
+							responseData = { status: 'sent_but_unparseable' };
+						}
+						
+						console.log('\n✅ ========== EMAIL ENVIADO COM SUCESSO! ==========');
+						console.log(`🎉 Tentativa ${attempts}/${maxAttempts} bem-sucedida!`);
+						console.log('📊 Resposta da API:', responseData);
+						console.log('📧 Destinatário:', LEAD_EMAIL);
+						console.log('👤 Lead:', nome, '(ID:', leadId, ')');
+						console.log('⏰ Enviado em:', new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }));
+						console.log('================================================\n');
+						
 						emailSent = true;
 						
 						// Atualizar status no localStorage
 						if (leadId) {
 							await updateLeadEmailStatus(leadId, true, attempts);
+							console.log('💾 Status atualizado no localStorage');
 						}
 					}
-				} catch (fetchError) {
-					console.error(`❌ Erro na tentativa ${attempts}:`, fetchError);
+				} catch (fetchError: any) {
+					console.error(`\n❌ ERRO DE REDE NA TENTATIVA ${attempts}`);
+					console.error('📋 Detalhes:');
+					console.error('  - Tipo:', fetchError.name || 'NetworkError');
+					console.error('  - Mensagem:', fetchError.message);
+					console.error('  - Stack:', fetchError.stack);
+					
+					if (fetchError.name === 'TypeError') {
+						console.error('\n🌐 POSSÍVEL PROBLEMA DE REDE:');
+						console.error('  - Verifique a conexão com a internet');
+						console.error('  - Firewall pode estar bloqueando api.resend.com');
+						console.error('  - CORS pode estar bloqueando a requisição');
+					} else if (fetchError.name === 'AbortError') {
+						console.error('\n⏱️ TIMEOUT:');
+						console.error('  - Requisição demorou muito tempo');
+						console.error('  - Verifique velocidade da conexão');
+					}
 					
 					if (attempts < maxAttempts) {
-						await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
+						const waitTime = 1000 * attempts;
+						console.log(`⏳ Aguardando ${waitTime}ms antes da próxima tentativa...`);
+						await new Promise(resolve => setTimeout(resolve, waitTime));
+					} else {
+						console.error('\n❌ Todas as tentativas esgotadas!');
 					}
 				}
 			}
 
 			if (!emailSent) {
-				console.error('❌ Todas as tentativas de envio falharam');
-				console.log('✅ Mas o lead está SALVO no localStorage com ID:', leadId);
-				console.log('📋 Exporte os leads digitando: exportLeads()');
+				console.error('\n❌ ========== FALHA NO ENVIO DE EMAIL ==========');
+				console.error('📊 Resumo:');
+				console.error(`  - Tentativas realizadas: ${attempts}/${maxAttempts}`);
+				console.error('  - Status final: FALHOU');
+				console.error('  - Lead ID:', leadId);
+				console.error('  - Nome:', nome);
+				console.error('  - Email destino:', LEAD_EMAIL);
+				console.error('\n🔧 PRÓXIMOS PASSOS:');
+				console.error('  1. Verifique os erros acima para diagnóstico');
+				console.error('  2. Lead SALVO no localStorage (ID:', leadId, ')');
+				console.error('  3. Digite exportLeads() para exportar manualmente');
+				console.error('  4. Entre em contato com suporte se problema persistir');
+				console.error('================================================\n');
+				
 				// Atualizar com falha
 				if (leadId) {
 					await updateLeadEmailStatus(leadId, false, attempts);
+					console.log('💾 Status de falha salvo no localStorage');
 				}
+			} else {
+				console.log('\n✅ Processo finalizado com SUCESSO!');
+				console.log('========== FIM DO PROCESSO ==========\n');
 			}
 
 			// Expor funções globais
@@ -286,10 +404,22 @@ ${historico}
 			(window as any).exportInteractions = exportInteractionsToJSON;
 
 			return true;
-		} catch (error) {
-			console.error('❌ Erro crítico ao enviar lead:', error);
-			console.log('✅ Mas o lead está SALVO no localStorage com ID:', leadId);
-			console.log('📋 Exporte os leads digitando: exportLeads()');
+		} catch (error: any) {
+			console.error('\n❌ ========== ERRO CRÍTICO INESPERADO ==========');
+			console.error('🔥 Um erro inesperado ocorreu fora do fluxo normal:');
+			console.error('  - Tipo:', error.name || 'Unknown');
+			console.error('  - Mensagem:', error.message);
+			console.error('  - Stack:', error.stack);
+			console.error('\n💾 DADOS PROTEGIDOS:');
+			console.error('  - Lead ID:', leadId);
+			console.error('  - Status: SALVO no localStorage');
+			console.error('  - Digite exportLeads() para recuperar');
+			console.error('\n📞 SUPORTE:');
+			console.error('  - Copie esta mensagem de erro completa');
+			console.error('  - Entre em contato com o desenvolvedor');
+			console.error('  - Inclua o Lead ID:', leadId);
+			console.error('================================================\n');
+			
 			(window as any).exportLeads = exportLeadsToJSON;
 			(window as any).exportInteractions = exportInteractionsToJSON;
 			return true;
