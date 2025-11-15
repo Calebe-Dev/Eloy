@@ -71,7 +71,7 @@
 	});
 </script>
 
-<div class="w-full relative bg-gradient-to-b from-gray-900 via-slate-900 to-gray-900">
+<div class="w-full relative bg-gradient-to-b from-gray-900 via-slate-900 to-gray-900" data-problem-section>
 	<!-- Pin wrapper para controlar a duração do scroll -->
 	<div bind:this={pinWrapper} class="relative" style="height: 300vh;">
 		<!-- Background sticky que fica fixo durante o scroll da seção -->

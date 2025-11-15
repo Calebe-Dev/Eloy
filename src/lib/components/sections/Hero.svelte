@@ -27,6 +27,16 @@
 		}
 	}
 
+	function scrollToProblem() {
+		const problemElement = document.querySelector('[data-problem-section]');
+		if (problemElement) {
+			problemElement.scrollIntoView({ 
+				behavior: 'smooth',
+				block: 'start'
+			});
+		}
+	}
+
 	function openChatbotInHero() {
 		// Chama a função para abrir o chatbot diretamente
 		if (onShowChatbot) {
@@ -228,7 +238,7 @@
 							variant="secondary" 
 							size="lg" 
 							class="w-full sm:w-auto min-h-[48px] sm:min-h-[56px] text-base sm:text-lg"
-							onclick={() => scrollToChatbot(true)}
+							onclick={scrollToProblem}
 						>
 							Ver demonstração
 						</Button>
@@ -335,9 +345,12 @@
 					<!-- Glow effect -->
 					<div class="absolute -inset-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl blur-xl opacity-40 group-hover:opacity-70 transition-all duration-500 animate-gradient" style="background-size: 200% 200%;"></div>
 					
-					<!-- Button -->
-					<button class="relative bg-gradient-to-r from-blue-600 to-purple-600 text-white px-7 sm:px-10 py-4 sm:py-5 rounded-xl font-bold shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 flex items-center gap-3 text-base sm:text-lg whitespace-nowrap">
-						<span>Testar agora</span>
+				<!-- Button -->
+				<button 
+					onclick={scrollToProblem}
+					class="relative bg-gradient-to-r from-blue-600 to-purple-600 text-white px-7 sm:px-10 py-4 sm:py-5 rounded-xl font-bold shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 flex items-center gap-3 text-base sm:text-lg whitespace-nowrap"
+				>
+					<span>Testar agora</span>
 						<svg class="w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
 						</svg>
