@@ -187,6 +187,15 @@
 		contexto: string,
 		historico: string
 	) {
+		console.log('\n🚨 ========== FUNÇÃO sendLeadToComercial INICIADA ==========');
+		console.log('📥 Parâmetros recebidos:');
+		console.log('  - Nome:', nome);
+		console.log('  - Telefone:', telefone);
+		console.log('  - Email:', email);
+		console.log('  - Contexto:', contexto);
+		console.log('  - Histórico (length):', historico.length, 'caracteres');
+		console.log('===========================================================\n');
+		
 		const leadData = {
 			nome,
 			telefone,
@@ -225,7 +234,7 @@
 			
 			if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
 				console.error('\n❌ ERRO CRÍTICO: Configurações do EmailJS não encontradas!');
-				console.error('📝 Ação necessária:');
+				console.error('� Ação necessária:');
 				console.error('  1. Criar arquivo .env na raiz do projeto');
 				console.error('  2. Adicionar as seguintes variáveis:');
 				console.error('     VITE_EMAILJS_SERVICE_ID=seu_service_id');
@@ -237,6 +246,12 @@
 				console.log('\n✅ Lead capturado (apenas localStorage):', leadData);
 				console.log('📋 Exporte os leads digitando: exportLeads()');
 				console.log('========== FIM (SEM ENVIO DE EMAIL) ==========\n');
+				
+				// Atualizar status como falha por falta de configuração
+				if (leadId) {
+					await updateLeadEmailStatus(leadId, false, 0);
+				}
+				
 				// Expor funções globais para exportar leads
 				(window as any).exportLeads = exportLeadsToJSON;
 				(window as any).exportInteractions = exportInteractionsToJSON;
@@ -249,11 +264,18 @@
 					console.log(`  - Leads com email enviado: ${leads.filter((l: any) => l.email_sent).length}`);
 					console.log(`  - Leads sem email: ${leads.filter((l: any) => !l.email_sent).length}`);
 				};
-				return true;
+				return false; // ⚠️ Retorna false quando não tem credenciais
 			}
 
-			// Inicializar EmailJS com a Public Key
-			emailjs.init(EMAILJS_PUBLIC_KEY);
+			// 🔧 Inicializar EmailJS com a Public Key
+			console.log('\n🔧 Inicializando EmailJS...');
+			try {
+				emailjs.init(EMAILJS_PUBLIC_KEY);
+				console.log('✅ EmailJS inicializado com sucesso!');
+			} catch (initError: any) {
+				console.error('❌ Erro ao inicializar EmailJS:', initError);
+				throw new Error('Falha na inicialização do EmailJS: ' + initError.message);
+			}
 
 			// Preparar parâmetros do template
 			const telefone_limpo = telefone.replace(/\D/g, '');
@@ -423,7 +445,10 @@
 				console.log(`  - Leads sem email: ${leads.filter((l: any) => !l.email_sent).length}`);
 			};
 			
+			console.log('\n🔚 ========== FUNÇÃO sendLeadToComercial FINALIZADA (COM ERRO) ==========\n');
 			return false;
+		} finally {
+			console.log('\n🏁 ========== FUNÇÃO sendLeadToComercial COMPLETADA ==========\n');
 		}
 	}
 
@@ -673,16 +698,119 @@ RESPONDA COM TODA INTELIGÊNCIA!`;
 		try {
 			if (step === 'name') {
 				if (containsName(text)) {
-					data.nome = text;
-					step = 'chat';
-					loading = true;
+					// 🔍 DETECÇÃO INTELIGENTE: Verifica se o usuário já enviou contatos junto com o nome
+					const extracted = extractContactInfo(text);
 					
-					await new Promise(resolve => setTimeout(resolve, 600));
-					let res = await sendAIMessage(text, text, '');
-					loading = false;
+					// 🧹 EXTRAÇÃO INTELIGENTE DO NOME
+					let cleanName = text;
 					
-					if (res.success) {
-						addMessage(res.data.resposta);
+					// Padrões comuns de apresentação
+					const namePatterns = [
+						/(?:meu nome é|me chamo|sou (?:o |a )?|eu sou (?:o |a )?)\s*([a-záàâãéèêíïóôõöúçñ\s]+?)(?:\s*(?:,|e|meu|minha|telefone|email|fone|cel|whats)|\s*$)/i,
+						/(?:ola|olá|oi|bom dia|boa tarde|boa noite)[^,]*,?\s*(?:meu nome é|me chamo|sou|eu sou)\s*([a-záàâãéèêíïóôõöúçñ\s]+?)(?:\s*(?:,|e|meu|minha|telefone|email|fone|cel|whats)|\s*$)/i,
+						/^([a-záàâãéèêíïóôõöúçñ]+(?:\s+[a-záàâãéèêíïóôõöúçñ]+)?)\s*(?:,|e|meu|minha|telefone|email|fone|cel|whats)/i
+					];
+					
+					let nameFound = false;
+					for (const pattern of namePatterns) {
+						const match = text.match(pattern);
+						if (match && match[1]) {
+							cleanName = match[1].trim();
+							// Remove palavras comuns que não são nome
+							cleanName = cleanName
+								.replace(/\b(ola|olá|oi|eloi|email|telefone|fone|cel|whats|meu|minha|é)\b/gi, '')
+								.replace(/\s+/g, ' ')
+								.trim();
+							
+							if (cleanName.length >= 2) {
+								nameFound = true;
+								break;
+							}
+						}
+					}
+					
+					// Fallback: Se não encontrou com padrões, tenta remover contatos
+					if (!nameFound && (extracted.phone || extracted.email)) {
+						cleanName = text
+							.replace(/\b\d{10,11}\b/g, '') // Remove telefone
+							.replace(/[^\s@]+@[^\s@]+\.[^\s@]+/g, '') // Remove email
+							.replace(/\b(email|telefone|fone|cel|whats|é|e|meu|minha)\b/gi, '') // Remove palavras-chave
+							.replace(/\s+/g, ' ')
+							.trim();
+					}
+					
+					data.nome = cleanName;
+					
+					// Se encontrou contatos junto com o nome, captura imediatamente
+					if (extracted.phone) {
+						data.telefone = extracted.phone;
+						console.log('📱 TELEFONE capturado na mensagem de nome:', data.telefone);
+						saveInteractionLog({
+							type: 'phone_captured_early',
+							user_name: data.nome,
+							phone: data.telefone,
+							note: 'Capturado junto com o nome'
+						});
+					}
+					
+					if (extracted.email) {
+						data.email = extracted.email;
+						console.log('📧 EMAIL capturado na mensagem de nome:', data.email);
+						saveInteractionLog({
+							type: 'email_captured_early',
+							user_name: data.nome,
+							email: data.email,
+							note: 'Capturado junto com o nome'
+						});
+					}
+					
+					// Se tem telefone E email, já envia o lead após a apresentação
+					if (data.telefone && data.email) {
+						console.log('🚀 Usuário enviou TUDO de uma vez! Enviando lead após apresentação...');
+						
+						step = 'chat';
+						loading = true;
+						
+						await new Promise(resolve => setTimeout(resolve, 600));
+						let res = await sendAIMessage(text, data.nome, '');
+						loading = false;
+						
+						if (res.success) {
+							addMessage(res.data.resposta);
+						}
+						
+						// Aguarda um pouco para a IA responder antes de enviar o lead
+						await new Promise(resolve => setTimeout(resolve, 1500));
+						loading = true;
+						
+						console.log('📧 ENVIANDO LEAD COM DADOS COMPLETOS DESDE O INÍCIO!');
+						await sendLeadToComercial(
+							data.nome,
+							data.telefone,
+							data.email,
+							'Forneceu dados completos logo no início',
+							history.join('\n')
+						);
+						
+						loading = false;
+						addMessage(
+							'Perfeito, ' +
+								data.nome +
+								'! ✅\n\nRecebi todas as suas informações. Nosso time comercial vai analisar e entrar em contato em breve!\n\nObrigado! 🙏'
+						);
+						step = 'finished';
+					} else {
+						// Fluxo normal - continua conversa
+						step = 'chat';
+						loading = true;
+						
+						await new Promise(resolve => setTimeout(resolve, 600));
+						let res = await sendAIMessage(text, data.nome, '');
+						loading = false;
+						
+						if (res.success) {
+							addMessage(res.data.resposta);
+						}
 					}
 				} else {
 					await new Promise(resolve => setTimeout(resolve, 600));
@@ -852,6 +980,43 @@ RESPONDA COM TODA INTELIGÊNCIA!`;
 			} else if (step === 'chat' || step === 'finished') {
 				console.log('\n🎯 ========== AUTO-DETECÇÃO DE CONTATOS (STEP: ' + step + ') ==========');
 				
+				// 🔒 VERIFICAÇÃO DE SEGURANÇA: Se está em 'finished' mas não tem dados completos, algo deu errado
+				if (step === 'finished' && !data.email) {
+					console.warn('⚠️ ALERTA: Step "finished" mas sem email! Forçando captura...');
+					
+					// Tenta extrair contatos da mensagem atual
+					const extracted = extractContactInfo(text);
+					
+					if (extracted.email) {
+						data.email = extracted.email;
+						if (extracted.phone && !data.telefone) {
+							data.telefone = extracted.phone;
+						}
+						
+						loading = true;
+						console.log('🚨 ENVIANDO LEAD DE RECUPERAÇÃO!');
+						
+						await sendLeadToComercial(
+							data.nome || 'Anônimo',
+							data.telefone || 'Não informado',
+							data.email,
+							data.interesse || 'Capturado em step finished',
+							history.join('\n')
+						);
+						
+						loading = false;
+						addMessage('Perfeito! Recebi suas informações. Nosso time comercial vai analisar e entrar em contato! 🙏');
+						return;
+					} else {
+						// Se não tem email, volta para waiting_email
+						console.log('🔄 Revertendo para waiting_email para capturar dados faltantes');
+						step = 'waiting_email';
+						emailAttempts = 0;
+						addMessage('Para finalizarmos, preciso do seu email. Pode me passar?');
+						return;
+					}
+				}
+				
 				// 🔍 DETECÇÃO INTELIGENTE: Verifica se o usuário enviou contatos mesmo sem estar no step correto
 				const extracted = extractContactInfo(text);
 				console.log('🔍 Resultado da extração:', extracted);
@@ -895,7 +1060,7 @@ RESPONDA COM TODA INTELIGÊNCIA!`;
 					console.log('  - data.email:', data.email);
 					console.log('  - Condição satisfeita?', shouldSendLead && data.email);
 					
-					// Se capturou email (com ou sem telefone), envia o lead
+					// Se capturou email (com ou sem telefone), envia o lead IMEDIATAMENTE
 					if (shouldSendLead && data.email) {
 						loading = true;
 						
@@ -912,7 +1077,7 @@ RESPONDA COM TODA INTELIGÊNCIA!`;
 								data.nome!,
 								data.telefone || 'Não informado',
 								data.email!,
-								data.interesse || text.substring(0, 200), // Usa a mensagem atual como interesse
+								data.interesse || text.substring(0, 200),
 								history.join('\n')
 							);
 							
@@ -932,17 +1097,18 @@ RESPONDA COM TODA INTELIGÊNCIA!`;
 						step = 'finished';
 						console.log('🏁 Step mudado para: finished');
 						console.log('========== FIM DO ENVIO AUTOMÁTICO ==========\n');
-						return; // Sai da função para não processar a mensagem novamente
-					} else {
-						console.log('⚠️ Condições não satisfeitas para envio. Continuando conversa normal...');
+						return; // ⚠️ CRÍTICO: PARA AQUI! Não continua o processamento da mensagem
 					}
-				} else {
-					console.log('ℹ️ Nenhum contato detectado nesta mensagem. Continuando conversa normal...');
+					
+					// Se não tem email ainda, mas tem telefone, apenas captura
+					console.log('⚠️ Condições não satisfeitas para envio automático.');
+					console.log('   Motivo: shouldSendLead=' + shouldSendLead + ', email=' + !!data.email);
 				}
 				
+				console.log('ℹ️ Continuando fluxo normal da conversa...');
 				console.log('========== FIM DA AUTO-DETECÇÃO ==========\n');
 				
-				// Continua o fluxo normal da conversa
+				// 🔄 Continua o fluxo normal da conversa (somente se não enviou lead)
 				loading = true;
 				
 				await new Promise(resolve => setTimeout(resolve, 600));
@@ -955,6 +1121,16 @@ RESPONDA COM TODA INTELIGÊNCIA!`;
 					if (res.data.interesse_detectado) {
 						data.interesse = text;
 						step = 'waiting_phone';
+						
+						// 🔥 CRÍTICO: Pede telefone imediatamente após detectar interesse
+						await new Promise(resolve => setTimeout(resolve, 800));
+						addMessage('Perfeito! Para que nosso time comercial entre em contato, preciso do seu telefone (com DDD):');
+						
+						console.log('📱 ========== INTERESSE DETECTADO ==========');
+						console.log('  - Interesse:', data.interesse);
+						console.log('  - Step mudou para: waiting_phone');
+						console.log('  - Aguardando telefone do usuário...');
+						console.log('===========================================\n');
 					}
 				}
 			}

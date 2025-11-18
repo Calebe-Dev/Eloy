@@ -46,7 +46,8 @@ self.addEventListener('fetch', (event) => {
 	if (!url.protocol.startsWith('http')) return;
 
 	// Ignorar APIs externas (sempre network-only)
-	if (url.hostname.includes('api.openai.com') || url.hostname.includes('api.resend.com')) {
+	// Skip caching for external API requests (OpenAI, EmailJS)
+	if (url.hostname.includes('api.openai.com') || url.hostname.includes('api.emailjs.com')) {
 		return;
 	}
 

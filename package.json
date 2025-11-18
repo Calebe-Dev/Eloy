@@ -14,7 +14,8 @@
 		"test": "playwright test",
 		"test:ui": "playwright test --ui",
 		"test:perf": "npm run build && lhci autorun",
-		"test:vitals": "playwright test tests/performance.spec.ts"
+		"test:vitals": "playwright test tests/performance.spec.ts",
+		"test:emailjs": "node test-emailjs.js"
 	},
 	"files": [
 		"dist",
@@ -75,6 +76,6 @@
 	],
 	"dependencies": {
 		"@emailjs/browser": "^4.4.1",
-		"resend": "^6.4.2"
+		"dotenv": "^17.2.3"
 	}
 }

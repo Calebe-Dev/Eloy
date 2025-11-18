@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste EmailJS - Browser</title>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        #log {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid #4CAF50;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .error {
+            border-left-color: #f44336;
+            color: #f44336;
+        }
+        .success {
+            border-left-color: #4CAF50;
+            color: #4CAF50;
+        }
+        .info {
+            color: #2196F3;
+        }
+        .credentials {
+            background: #fffbf0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #ff9800;
+        }
+        .credentials h3 {
+            margin-top: 0;
+            color: #ff9800;
+        }
+        .credentials code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste EmailJS - Ambiente Browser</h1>
+        
+        <div class="credentials">
+            <h3>📋 Credenciais Detectadas:</h3>
+            <p><strong>Service ID:</strong> <code id="serviceId">Carregando...</code></p>
+            <p><strong>Template ID:</strong> <code id="templateId">Carregando...</code></p>
+            <p><strong>Public Key:</strong> <code id="publicKey">Carregando...</code></p>
+        </div>
+
+        <p>Este teste simula exatamente como o chatbot envia emails.</p>
+        <p>Clique no botão abaixo para enviar um email de teste:</p>
+        
+        <button id="testBtn" onclick="testEmail()">🚀 Enviar Email de Teste</button>
+        
+        <div id="log"></div>
+    </div>
+
+    <script>
+        // Configurações (mesmas do chatbot)
+        const EMAILJS_SERVICE_ID = 'service_jqi0wu9';
+        const EMAILJS_TEMPLATE_ID = 'template_kxnrtgn';
+        const EMAILJS_PUBLIC_KEY = 'MARXbPXn7FZ1b96VD';
+
+        // Mostrar credenciais na página
+        document.getElementById('serviceId').textContent = EMAILJS_SERVICE_ID;
+        document.getElementById('templateId').textContent = EMAILJS_TEMPLATE_ID;
+        document.getElementById('publicKey').textContent = EMAILJS_PUBLIC_KEY;
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString('pt-BR');
+            const className = type === 'error' ? 'error' : (type === 'success' ? 'success' : 'info');
+            logDiv.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        async function testEmail() {
+            const btn = document.getElementById('testBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Enviando...';
+            
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML = '';
+            
+            try {
+                log('🧪 ========== INICIANDO TESTE ==========', 'info');
+                log(`📧 Service ID: ${EMAILJS_SERVICE_ID}`, 'info');
+                log(`📋 Template ID: ${EMAILJS_TEMPLATE_ID}`, 'info');
+                log(`🔑 Public Key: ${EMAILJS_PUBLIC_KEY.substring(0, 8)}...`, 'info');
+                
+                // Inicializar EmailJS
+                log('\n🔧 Inicializando EmailJS...', 'info');
+                emailjs.init(EMAILJS_PUBLIC_KEY);
+                log('✅ EmailJS inicializado com sucesso!', 'success');
+                
+                // Preparar dados do template (mesmos parâmetros do chatbot)
+                const templateParams = {
+                    nome: 'Teste Browser',
+                    telefone: '11987654321',
+                    telefone_limpo: '11987654321',
+                    email: 'teste@browser.com',
+                    interesse: 'Teste de integração via browser',
+                    historico: `Usuário: Olá, sou um teste
+Eloi: Olá! Como posso ajudar?
+Usuário: Quero testar o email
+Eloi: Perfeito! Vou registrar.`,
+                    data_hora: new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+                    lead_id: `test_browser_${Date.now()}`
+                };
+                
+                log('\n📤 Enviando email...', 'info');
+                log(`📊 Dados: ${JSON.stringify({
+                    nome: templateParams.nome,
+                    telefone: templateParams.telefone,
+                    email: templateParams.email
+                }, null, 2)}`, 'info');
+                
+                const startTime = performance.now();
+                
+                const response = await emailjs.send(
+                    EMAILJS_SERVICE_ID,
+                    EMAILJS_TEMPLATE_ID,
+                    templateParams
+                );
+                
+                const duration = (performance.now() - startTime).toFixed(2);
+                
+                log('\n✅ ========== EMAIL ENVIADO COM SUCESSO! ==========', 'success');
+                log(`📊 Status: ${response.status}`, 'success');
+                log(`📝 Resposta: ${response.text}`, 'success');
+                log(`⏱️ Duração: ${duration}ms`, 'success');
+                log(`🕐 Timestamp: ${new Date().toISOString()}`, 'success');
+                log('==================================================', 'success');
+                
+                log('\n🎉 TESTE BEM-SUCEDIDO!', 'success');
+                log('📧 Verifique a caixa de entrada configurada no template.', 'success');
+                log('📧 Email deve chegar em: bruno.grupooc@gmail.com', 'success');
+                
+                btn.textContent = '✅ Email Enviado!';
+                btn.style.background = '#4CAF50';
+                
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.textContent = '🚀 Enviar Email de Teste';
+                    btn.style.background = '#4CAF50';
+                }, 3000);
+                
+            } catch (error) {
+                log('\n❌ ========== ERRO AO ENVIAR EMAIL ==========', 'error');
+                log(`🔴 Tipo: ${error.name}`, 'error');
+                log(`🔴 Mensagem: ${error.message || error.text}`, 'error');
+                log(`🔴 Status: ${error.status || 'N/A'}`, 'error');
+                
+                if (error.text) {
+                    log(`\n📝 Resposta do EmailJS: ${error.text}`, 'error');
+                    
+                    if (error.text.includes('Invalid') || error.text.includes('not found')) {
+                        log('\n🔐 POSSÍVEL CAUSA:', 'error');
+                        log('  - Service ID, Template ID ou Public Key incorretos', 'error');
+                        log('  - Verifique em: https://dashboard.emailjs.com/', 'error');
+                    } else if (error.text.includes('limit') || error.text.includes('quota')) {
+                        log('\n⏱️ POSSÍVEL CAUSA:', 'error');
+                        log('  - Limite mensal atingido (200 emails/mês no free)', 'error');
+                        log('  - Verifique: https://dashboard.emailjs.com/admin', 'error');
+                    }
+                }
+                
+                log('============================================', 'error');
+                
+                btn.disabled = false;
+                btn.textContent = '🚀 Tentar Novamente';
+                btn.style.background = '#f44336';
+            }
+        }
+    </script>
+</body>
+</html>
