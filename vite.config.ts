@@ -11,10 +11,8 @@ export default defineConfig({
 		devtoolsJson(),
 		// Brotli compression (nível 11 = máxima compressão)
 		compression({
-			algorithm: 'brotliCompress',
-			exclude: [/\.(br)$/, /\.(gz)$/],
-			threshold: 512,
-			compressionOptions: { level: 11 }
+			include: [/\.(js|mjs|json|css|html|svg)$/],
+			threshold: 512
 		})
 	],
 	build: {

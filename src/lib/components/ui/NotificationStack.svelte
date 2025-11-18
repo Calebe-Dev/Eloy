@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { notifications } from '$lib/stores/notifications';
+	import { notifications } from '$lib/stores/notifications.js';
 	import { fly, fade } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 

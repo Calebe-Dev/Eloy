@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { chatbotReady } from '$lib/stores/chatbot';
+	import { chatbotReady } from '$lib/stores/chatbot.js';
 
 	type Step = 'name' | 'chat' | 'waiting_phone' | 'waiting_email' | 'finished';
 	

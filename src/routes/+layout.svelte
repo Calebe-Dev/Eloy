@@ -27,6 +27,25 @@
 		} else {
 			setTimeout(loadExtendedFonts, 1000);
 		}
+
+		// Microsoft Clarity Analytics
+		if ('requestIdleCallback' in window) {
+			window.requestIdleCallback(() => {
+				(function(c,l,a,r,i,t,y){
+					c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+					t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+					y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+				})(window, document, "clarity", "script", "u83rp9vn2n");
+			});
+		} else {
+			setTimeout(() => {
+				(function(c,l,a,r,i,t,y){
+					c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+					t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+					y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+				})(window, document, "clarity", "script", "u83rp9vn2n");
+			}, 2000);
+		}
 	}
 </script>
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { notifications } from '$lib/stores/notifications';
+	import { notifications } from '$lib/stores/notifications.js';
 
 	interface Props {
 		message: string;
