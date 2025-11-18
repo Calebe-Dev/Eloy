@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { chatbotReady } from '$lib/stores/chatbot.js';
+	import emailjs from '@emailjs/browser';
 
 	type Step = 'name' | 'chat' | 'waiting_phone' | 'waiting_email' | 'finished';
 	
@@ -28,6 +29,8 @@
 	let loading = $state(false);
 	let messagesContainer = $state<HTMLDivElement>();
 	let userClickedButton = $state(false); // Track se usuário clicou no botão
+	let phoneAttempts = $state(0); // Contador de tentativas de telefone
+	let emailAttempts = $state(0); // Contador de tentativas de email
 
 	// Observa mudanças no forceOpen
 	$effect(() => {
@@ -59,6 +62,29 @@
 
 	function isEmail(text: string) {
 		return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text);
+	}
+
+	// 🔍 Extrair telefone de qualquer texto
+	function extractPhone(text: string): string | null {
+		// Remove tudo que não é número
+		const cleaned = text.replace(/\D/g, '');
+		// Procura por sequência de 10-11 dígitos
+		const phoneMatch = cleaned.match(/(\d{10,11})/);
+		return phoneMatch ? phoneMatch[1] : null;
+	}
+
+	// 🔍 Extrair email de qualquer texto
+	function extractEmail(text: string): string | null {
+		const emailMatch = text.match(/[^\s@]+@[^\s@]+\.[^\s@]+/);
+		return emailMatch ? emailMatch[0] : null;
+	}
+
+	// 🔍 Tentar extrair telefone E email de uma mensagem
+	function extractContactInfo(text: string): { phone: string | null; email: string | null } {
+		return {
+			phone: extractPhone(text),
+			email: extractEmail(text)
+		};
 	}
 
 	function addMessage(text: string, user = false) {
@@ -186,53 +212,61 @@
 			console.log('⏰ Timestamp:', new Date().toISOString());
 			console.log('📧 Lead ID:', leadId);
 			
-			const RESEND_API_KEY = import.meta.env.VITE_RESEND_API_KEY;
-			const LEAD_EMAIL = import.meta.env.VITE_LEAD_EMAIL || 'bruno.grupooc@gmail.com';
+			// Configurações do EmailJS (via variáveis de ambiente)
+			const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+			const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+			const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 			
 			// Verificação detalhada de variáveis de ambiente
 			console.log('🔑 Verificando variáveis de ambiente...');
-			console.log('  - VITE_RESEND_API_KEY:', RESEND_API_KEY ? `Configurada (${RESEND_API_KEY.substring(0, 8)}...)` : '❌ NÃO CONFIGURADA');
-			console.log('  - VITE_LEAD_EMAIL:', LEAD_EMAIL);
+			console.log('  - VITE_EMAILJS_SERVICE_ID:', EMAILJS_SERVICE_ID ? `✅ Configurado (${EMAILJS_SERVICE_ID})` : '❌ NÃO CONFIGURADA');
+			console.log('  - VITE_EMAILJS_TEMPLATE_ID:', EMAILJS_TEMPLATE_ID ? `✅ Configurado (${EMAILJS_TEMPLATE_ID})` : '❌ NÃO CONFIGURADA');
+			console.log('  - VITE_EMAILJS_PUBLIC_KEY:', EMAILJS_PUBLIC_KEY ? `✅ Configurada (${EMAILJS_PUBLIC_KEY.substring(0, 8)}...)` : '❌ NÃO CONFIGURADA');
 			
-			if (!RESEND_API_KEY) {
-				console.error('\n❌ ERRO CRÍTICO: RESEND_API_KEY não configurada!');
+			if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
+				console.error('\n❌ ERRO CRÍTICO: Configurações do EmailJS não encontradas!');
 				console.error('📝 Ação necessária:');
 				console.error('  1. Criar arquivo .env na raiz do projeto');
-				console.error('  2. Adicionar: VITE_RESEND_API_KEY=sua_chave_aqui');
-				console.error('  3. Reiniciar o servidor de desenvolvimento');
+				console.error('  2. Adicionar as seguintes variáveis:');
+				console.error('     VITE_EMAILJS_SERVICE_ID=seu_service_id');
+				console.error('     VITE_EMAILJS_TEMPLATE_ID=seu_template_id');
+				console.error('     VITE_EMAILJS_PUBLIC_KEY=sua_public_key');
+				console.error('  3. Obter chaves em: https://dashboard.emailjs.com/');
+				console.error('  4. Reiniciar o servidor de desenvolvimento');
+				console.error('  5. Ver guia completo: EMAILJS_INTEGRATION.md');
 				console.log('\n✅ Lead capturado (apenas localStorage):', leadData);
 				console.log('📋 Exporte os leads digitando: exportLeads()');
 				console.log('========== FIM (SEM ENVIO DE EMAIL) ==========\n');
-				// Expor função global para exportar leads
+				// Expor funções globais para exportar leads
 				(window as any).exportLeads = exportLeadsToJSON;
 				(window as any).exportInteractions = exportInteractionsToJSON;
+				(window as any).viewStats = () => {
+					const leads = JSON.parse(localStorage.getItem('eloi_leads') || '[]');
+					const interactions = JSON.parse(localStorage.getItem('eloi_interactions') || '[]');
+					console.log('📊 ESTATÍSTICAS ELOI:');
+					console.log(`  - Total de leads: ${leads.length}`);
+					console.log(`  - Total de interações: ${interactions.length}`);
+					console.log(`  - Leads com email enviado: ${leads.filter((l: any) => l.email_sent).length}`);
+					console.log(`  - Leads sem email: ${leads.filter((l: any) => !l.email_sent).length}`);
+				};
 				return true;
 			}
 
-			const emailText = `🔥 NOVO LEAD QUALIFICADO
+			// Inicializar EmailJS com a Public Key
+			emailjs.init(EMAILJS_PUBLIC_KEY);
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-📋 DADOS:
-👤 Nome: ${nome}
-📱 Telefone: ${telefone}
-📧 Email: ${email}
-🎯 Interesse: ${contexto}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-💬 HISTÓRICO DA CONVERSA:
-
-${historico}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-⏰ Data/Hora: ${leadData.data_hora}
-🤖 Capturado por: Eloi
-💾 ID Lead: ${leadId}
-🚨 AÇÃO IMEDIATA: Entre em contato!
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+			// Preparar parâmetros do template
+			const telefone_limpo = telefone.replace(/\D/g, '');
+			const templateParams = {
+				nome,
+				telefone,
+				telefone_limpo,
+				email,
+				interesse: contexto,
+				historico,
+				data_hora: leadData.data_hora,
+				lead_id: leadId
+			};
 
 			// 🔥 REDUNDÂNCIA 2: Múltiplas tentativas de envio (retry com exponential backoff)
 			let emailSent = false;
@@ -245,95 +279,28 @@ ${historico}
 				console.log('⏰ Timestamp tentativa:', new Date().toISOString());
 
 				try {
-					const requestBody = {
-						from: 'Eloi <onboarding@resend.dev>',
-						to: [LEAD_EMAIL],
-						subject: `🔥 LEAD QUENTE - Eloi - ${nome}`,
-						text: emailText
-					};
-					
-					console.log('📤 Enviando request para Resend API...');
-					console.log('  - Endpoint: https://api.resend.com/emails');
-					console.log('  - From:', requestBody.from);
-					console.log('  - To:', requestBody.to);
-					console.log('  - Subject:', requestBody.subject);
-					console.log('  - Body length:', emailText.length, 'caracteres');
+					console.log('📤 Enviando email via EmailJS...');
+					console.log('  - Service ID:', EMAILJS_SERVICE_ID);
+					console.log('  - Template ID:', EMAILJS_TEMPLATE_ID);
+					console.log('  - Dados:', { nome, telefone, email, interesse: contexto });
 					
 					const startTime = performance.now();
-					const response = await fetch('https://api.resend.com/emails', {
-						method: 'POST',
-						headers: {
-							'Authorization': `Bearer ${RESEND_API_KEY}`,
-							'Content-Type': 'application/json'
-						},
-						body: JSON.stringify(requestBody)
-					});
+					const response = await emailjs.send(
+						EMAILJS_SERVICE_ID,
+						EMAILJS_TEMPLATE_ID,
+						templateParams
+					);
 					const endTime = performance.now();
 					const duration = (endTime - startTime).toFixed(2);
 					
-					console.log(`📊 Response recebido em ${duration}ms`);
-					console.log('  - Status:', response.status, response.statusText);
-					console.log('  - Headers:', Object.fromEntries(response.headers.entries()));
-
-					if (!response.ok) {
-						let errorDetails;
-						try {
-							errorDetails = await response.json();
-						} catch (parseError) {
-							const textError = await response.text();
-							errorDetails = { raw_error: textError, parse_error: parseError };
-						}
-						
-						console.error(`\n❌ TENTATIVA ${attempts} FALHOU`);
-						console.error('📋 Detalhes do erro:');
-						console.error('  - HTTP Status:', response.status, response.statusText);
-						console.error('  - Error Response:', errorDetails);
-						
-						// Diagnóstico específico por tipo de erro
-						if (response.status === 401) {
-							console.error('\n🔐 ERRO DE AUTENTICAÇÃO (401):');
-							console.error('  - API Key pode estar inválida ou expirada');
-							console.error('  - Verifique se VITE_RESEND_API_KEY está correta');
-							console.error('  - Acesse: https://resend.com/api-keys');
-						} else if (response.status === 403) {
-							console.error('\n🚫 ERRO DE PERMISSÃO (403):');
-							console.error('  - API Key não tem permissão para enviar emails');
-							console.error('  - Verifique as configurações da conta Resend');
-						} else if (response.status === 422) {
-							console.error('\n📝 ERRO DE VALIDAÇÃO (422):');
-							console.error('  - Dados do email inválidos');
-							console.error('  - Verifique formato do email destinatário:', LEAD_EMAIL);
-							console.error('  - Error details:', errorDetails);
-						} else if (response.status === 429) {
-							console.error('\n⏱️ RATE LIMIT EXCEDIDO (429):');
-							console.error('  - Muitos emails enviados em pouco tempo');
-							console.error('  - Aguarde alguns minutos antes de tentar novamente');
-						} else if (response.status >= 500) {
-							console.error('\n🔥 ERRO DO SERVIDOR RESEND (5xx):');
-							console.error('  - Problema no servidor da Resend');
-							console.error('  - Verifique status: https://resend.com/status');
-						}
-						
-						if (attempts < maxAttempts) {
-							const waitTime = 1000 * attempts;
-							console.log(`⏳ Aguardando ${waitTime}ms antes da próxima tentativa...`);
-							await new Promise(resolve => setTimeout(resolve, waitTime));
-						} else {
-							console.error('\n❌ Todas as tentativas esgotadas!');
-						}
-					} else {
-						let responseData;
-						try {
-							responseData = await response.json();
-						} catch (parseError) {
-							console.warn('⚠️ Não foi possível parsear resposta JSON, mas email foi enviado');
-							responseData = { status: 'sent_but_unparseable' };
-						}
-						
+					console.log(`📊 Email enviado em ${duration}ms`);
+					console.log('  - Status:', response.status);
+					console.log('  - Text:', response.text);
+					
+					if (response.status === 200) {
 						console.log('\n✅ ========== EMAIL ENVIADO COM SUCESSO! ==========');
 						console.log(`🎉 Tentativa ${attempts}/${maxAttempts} bem-sucedida!`);
-						console.log('📊 Resposta da API:', responseData);
-						console.log('📧 Destinatário:', LEAD_EMAIL);
+						console.log('📧 Enviado via EmailJS');
 						console.log('👤 Lead:', nome, '(ID:', leadId, ')');
 						console.log('⏰ Enviado em:', new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }));
 						console.log('================================================\n');
@@ -345,31 +312,49 @@ ${historico}
 							await updateLeadEmailStatus(leadId, true, attempts);
 							console.log('💾 Status atualizado no localStorage');
 						}
+					} else {
+						throw new Error(`Status inesperado: ${response.status}`);
 					}
-				} catch (fetchError: any) {
-					console.error(`\n❌ ERRO DE REDE NA TENTATIVA ${attempts}`);
-					console.error('📋 Detalhes:');
-					console.error('  - Tipo:', fetchError.name || 'NetworkError');
-					console.error('  - Mensagem:', fetchError.message);
-					console.error('  - Stack:', fetchError.stack);
+				} catch (emailError: any) {
+					console.error(`\n❌ ERRO NA TENTATIVA ${attempts}`);
+					console.error('📋 Detalhes do erro:');
+					console.error('  - Tipo:', emailError.name || 'Desconhecido');
+					console.error('  - Mensagem:', emailError.message || emailError.text || 'Sem mensagem');
+					console.error('  - Stack:', emailError.stack);
 					
-					if (fetchError.name === 'TypeError') {
-						console.error('\n🌐 POSSÍVEL PROBLEMA DE REDE:');
-						console.error('  - Verifique a conexão com a internet');
-						console.error('  - Firewall pode estar bloqueando api.resend.com');
-						console.error('  - CORS pode estar bloqueando a requisição');
-					} else if (fetchError.name === 'AbortError') {
-						console.error('\n⏱️ TIMEOUT:');
-						console.error('  - Requisição demorou muito tempo');
-						console.error('  - Verifique velocidade da conexão');
+					// Diagnóstico específico por tipo de erro do EmailJS
+					if (emailError.text) {
+						console.error('\n📝 Resposta do EmailJS:', emailError.text);
+						
+						if (emailError.text.includes('Invalid') || emailError.text.includes('not found')) {
+							console.error('\n🔐 ERRO DE CONFIGURAÇÃO:');
+							console.error('  - Verifique se Service ID, Template ID e Public Key estão corretos');
+							console.error('  - Acesse: https://dashboard.emailjs.com/');
+							console.error('  - Ver guia: EMAILJS_INTEGRATION.md');
+						} else if (emailError.text.includes('limit') || emailError.text.includes('quota')) {
+							console.error('\n⏱️ LIMITE EXCEDIDO:');
+							console.error('  - Plano EmailJS pode ter atingido o limite mensal (200/mês no free)');
+							console.error('  - Verifique: https://dashboard.emailjs.com/admin');
+						}
+					}
+					
+					if (typeof emailError === 'object' && emailError !== null) {
+						console.error('  - Error object:', JSON.stringify(emailError, null, 2));
 					}
 					
 					if (attempts < maxAttempts) {
-						const waitTime = 1000 * attempts;
+						const waitTime = 1000 * Math.pow(2, attempts - 1); // Exponential backoff: 1s, 2s, 4s
 						console.log(`⏳ Aguardando ${waitTime}ms antes da próxima tentativa...`);
 						await new Promise(resolve => setTimeout(resolve, waitTime));
 					} else {
 						console.error('\n❌ Todas as tentativas esgotadas!');
+						console.log('💾 Mas o lead está salvo no localStorage!');
+						console.log('📋 Para exportar: exportLeads()');
+					}
+					
+					// Atualizar status de tentativas mesmo em falha
+					if (leadId) {
+						await updateLeadEmailStatus(leadId, false, attempts);
 					}
 				}
 			}
@@ -381,12 +366,11 @@ ${historico}
 				console.error('  - Status final: FALHOU');
 				console.error('  - Lead ID:', leadId);
 				console.error('  - Nome:', nome);
-				console.error('  - Email destino:', LEAD_EMAIL);
 				console.error('\n🔧 PRÓXIMOS PASSOS:');
 				console.error('  1. Verifique os erros acima para diagnóstico');
 				console.error('  2. Lead SALVO no localStorage (ID:', leadId, ')');
 				console.error('  3. Digite exportLeads() para exportar manualmente');
-				console.error('  4. Entre em contato com suporte se problema persistir');
+				console.error('  4. Ver guia de configuração: EMAILJS_INTEGRATION.md');
 				console.error('================================================\n');
 				
 				// Atualizar com falha
@@ -402,27 +386,44 @@ ${historico}
 			// Expor funções globais
 			(window as any).exportLeads = exportLeadsToJSON;
 			(window as any).exportInteractions = exportInteractionsToJSON;
+			(window as any).viewStats = () => {
+				const leads = JSON.parse(localStorage.getItem('eloi_leads') || '[]');
+				const interactions = JSON.parse(localStorage.getItem('eloi_interactions') || '[]');
+				console.log('📊 ESTATÍSTICAS ELOI:');
+				console.log(`  - Total de leads: ${leads.length}`);
+				console.log(`  - Total de interações: ${interactions.length}`);
+				console.log(`  - Leads com email enviado: ${leads.filter((l: any) => l.email_sent).length}`);
+				console.log(`  - Leads sem email: ${leads.filter((l: any) => !l.email_sent).length}`);
+			};
 
-			return true;
+			return emailSent;
 		} catch (error: any) {
-			console.error('\n❌ ========== ERRO CRÍTICO INESPERADO ==========');
-			console.error('🔥 Um erro inesperado ocorreu fora do fluxo normal:');
-			console.error('  - Tipo:', error.name || 'Unknown');
-			console.error('  - Mensagem:', error.message);
-			console.error('  - Stack:', error.stack);
-			console.error('\n💾 DADOS PROTEGIDOS:');
-			console.error('  - Lead ID:', leadId);
-			console.error('  - Status: SALVO no localStorage');
-			console.error('  - Digite exportLeads() para recuperar');
-			console.error('\n📞 SUPORTE:');
-			console.error('  - Copie esta mensagem de erro completa');
-			console.error('  - Entre em contato com o desenvolvedor');
-			console.error('  - Inclua o Lead ID:', leadId);
-			console.error('================================================\n');
+			console.error('\n❌ ERRO CRÍTICO NO PROCESSO DE ENVIO:');
+			console.error('  - Tipo:', error?.name || 'Desconhecido');
+			console.error('  - Mensagem:', error?.message || 'Sem mensagem');
+			console.error('  - Stack:', error?.stack);
+			console.log('\n💾 Lead está SEGURO no localStorage!');
+			console.log('📋 Para exportar: exportLeads()');
 			
+			// Atualizar status mesmo em erro crítico
+			if (leadId) {
+				await updateLeadEmailStatus(leadId, false, 0);
+			}
+			
+			// Expor funções globais
 			(window as any).exportLeads = exportLeadsToJSON;
 			(window as any).exportInteractions = exportInteractionsToJSON;
-			return true;
+			(window as any).viewStats = () => {
+				const leads = JSON.parse(localStorage.getItem('eloi_leads') || '[]');
+				const interactions = JSON.parse(localStorage.getItem('eloi_interactions') || '[]');
+				console.log('📊 ESTATÍSTICAS ELOI:');
+				console.log(`  - Total de leads: ${leads.length}`);
+				console.log(`  - Total de interações: ${interactions.length}`);
+				console.log(`  - Leads com email enviado: ${leads.filter((l: any) => l.email_sent).length}`);
+				console.log(`  - Leads sem email: ${leads.filter((l: any) => !l.email_sent).length}`);
+			};
+			
+			return false;
 		}
 	}
 
@@ -649,6 +650,14 @@ RESPONDA COM TODA INTELIGÊNCIA!`;
 		if (!input.trim()) return;
 		
 		const text = input.trim();
+		console.log('\n🎯 ========== NOVA MENSAGEM ==========');
+		console.log('📝 Texto:', text);
+		console.log('📍 Step atual:', step);
+		console.log('👤 Nome:', data.nome);
+		console.log('📱 Telefone:', data.telefone);
+		console.log('📧 Email:', data.email);
+		console.log('======================================\n');
+		
 		addMessage(text, true);
 		input = '';
 
@@ -680,8 +689,14 @@ RESPONDA COM TODA INTELIGÊNCIA!`;
 					addMessage('Qual é seu nome? 😊');
 				}
 			} else if (step === 'waiting_phone') {
-				if (isPhoneNumber(text)) {
-					data.telefone = text.replace(/\D/g, '');
+				phoneAttempts++;
+				
+				// Tenta extrair telefone e email da mensagem
+				const extracted = extractContactInfo(text);
+				
+				if (extracted.phone) {
+					data.telefone = extracted.phone;
+					phoneAttempts = 0; // Reset contador
 					
 					// 📊 LOG: Telefone capturado
 					saveInteractionLog({
@@ -690,16 +705,85 @@ RESPONDA COM TODA INTELIGÊNCIA!`;
 						phone: data.telefone
 					});
 					
+					// Se também encontrou email na mesma mensagem, captura tudo de uma vez
+					if (extracted.email) {
+						data.email = extracted.email;
+						
+						// 📊 LOG: Email capturado
+						saveInteractionLog({
+							type: 'email_captured',
+							user_name: data.nome || 'Anônimo',
+							email: data.email
+						});
+						
+						loading = true;
+						
+						// Envia lead direto com ambos os dados
+						await sendLeadToComercial(
+							data.nome!,
+							data.telefone!,
+							data.email!,
+							data.interesse || 'Não especificado',
+							history.join('\n')
+						);
+						
+						await new Promise(resolve => setTimeout(resolve, 1000));
+						loading = false;
+						
+						addMessage(
+							'Excelente, ' +
+								data.nome +
+								'! ✅\n\nRecebi seu telefone e email. Nosso time comercial vai analisar seu perfil e entrar em contato em breve!\n\nObrigado! 🙏'
+						);
+						step = 'finished';
+					} else {
+						// Só telefone, pede email
+						step = 'waiting_email';
+						await new Promise(resolve => setTimeout(resolve, 600));
+						addMessage('Perfeito! Agora me passa seu email:');
+					}
+				} else if (phoneAttempts >= 3) {
+					// Após 3 tentativas sem sucesso, aceita qualquer coisa como "telefone"
+					data.telefone = text.trim() || 'Não fornecido';
+					phoneAttempts = 0;
+					
+					// 📊 LOG: Telefone capturado (fallback)
+					saveInteractionLog({
+						type: 'phone_captured_fallback',
+						user_name: data.nome || 'Anônimo',
+						phone: data.telefone,
+						note: 'Capturado após 3 tentativas sem validação'
+					});
+					
 					step = 'waiting_email';
 					await new Promise(resolve => setTimeout(resolve, 600));
-					addMessage('Perfeito! Agora me passa seu email:');
+					addMessage('Ok, anotado! Agora me passa seu email para continuarmos:');
 				} else {
+					// Não conseguiu extrair telefone, tenta novamente
 					await new Promise(resolve => setTimeout(resolve, 600));
 					addMessage('Pode me passar seu telefone com DDD? Ex: 11987654321');
 				}
 			} else if (step === 'waiting_email') {
-				if (isEmail(text)) {
-					data.email = text;
+				emailAttempts++;
+				
+				// Tenta extrair email (e telefone caso não tenha sido capturado ainda)
+				const extracted = extractContactInfo(text);
+				
+				if (extracted.email) {
+					data.email = extracted.email;
+					emailAttempts = 0; // Reset contador
+					
+					// Se não tinha telefone ainda, tenta pegar também
+					if (!data.telefone && extracted.phone) {
+						data.telefone = extracted.phone;
+						
+						// 📊 LOG: Telefone capturado tardiamente
+						saveInteractionLog({
+							type: 'phone_captured',
+							user_name: data.nome || 'Anônimo',
+							phone: data.telefone
+						});
+					}
 					
 					// 📊 LOG: Email capturado
 					saveInteractionLog({
@@ -712,7 +796,7 @@ RESPONDA COM TODA INTELIGÊNCIA!`;
 					
 					await sendLeadToComercial(
 						data.nome!,
-						data.telefone!,
+						data.telefone || 'Não informado',
 						data.email!,
 						data.interesse || 'Não especificado',
 						history.join('\n')
@@ -727,11 +811,138 @@ RESPONDA COM TODA INTELIGÊNCIA!`;
 							'! ✅\n\nSeu interesse foi registrado e nosso time comercial vai analisar seu perfil.\n\nEles entram em contato com você em breve!\n\nObrigado! 🙏'
 					);
 					step = 'finished';
+				} else if (emailAttempts >= 3) {
+					// Após 3 tentativas sem sucesso, envia o lead mesmo sem email válido
+					data.email = text.trim() || 'Não fornecido';
+					emailAttempts = 0;
+					
+					// 📊 LOG: Email capturado (fallback)
+					saveInteractionLog({
+						type: 'email_captured_fallback',
+						user_name: data.nome || 'Anônimo',
+						email: data.email,
+						note: 'Capturado após 3 tentativas sem validação - LEAD ENVIADO COM HISTÓRICO COMPLETO'
+					});
+					
+					loading = true;
+					
+					// 🔥 ENVIA O LEAD MESMO SEM EMAIL VÁLIDO - O HISTÓRICO É VALIOSO!
+					await sendLeadToComercial(
+						data.nome!,
+						data.telefone || 'Não informado',
+						data.email!,
+						data.interesse || 'Não especificado',
+						history.join('\n')
+					);
+					
+					await new Promise(resolve => setTimeout(resolve, 1000));
+					loading = false;
+					
+					addMessage(
+						'Perfeito, ' +
+							data.nome +
+							'! ✅\n\nSuas informações foram registradas e nosso time comercial vai analisar a conversa.\n\nEles entram em contato com você em breve!\n\nObrigado! 🙏'
+					);
+					step = 'finished';
 				} else {
+					// Não conseguiu extrair email, tenta novamente
 					await new Promise(resolve => setTimeout(resolve, 600));
 					addMessage('Pode me passar seu email? Ex: seu@email.com');
 				}
 			} else if (step === 'chat' || step === 'finished') {
+				console.log('\n🎯 ========== AUTO-DETECÇÃO DE CONTATOS (STEP: ' + step + ') ==========');
+				
+				// 🔍 DETECÇÃO INTELIGENTE: Verifica se o usuário enviou contatos mesmo sem estar no step correto
+				const extracted = extractContactInfo(text);
+				console.log('🔍 Resultado da extração:', extracted);
+				
+				const hasContactInfo = extracted.phone || extracted.email;
+				console.log('📋 Has contact info?', hasContactInfo);
+				console.log('📋 Data atual:', { nome: data.nome, telefone: data.telefone, email: data.email });
+				
+				// Se encontrou contatos e ainda não tem AMBOS capturados
+				if (hasContactInfo) {
+					console.log('✅ Contato detectado! Processando...');
+					let shouldSendLead = false;
+					
+					// Captura telefone se não tem
+					if (extracted.phone && !data.telefone) {
+						data.telefone = extracted.phone;
+						console.log('📱 TELEFONE capturado automaticamente:', data.telefone);
+						saveInteractionLog({
+							type: 'phone_captured_auto',
+							user_name: data.nome || 'Anônimo',
+							phone: data.telefone,
+							note: 'Capturado automaticamente durante conversa'
+						});
+					}
+					
+					// Captura email se não tem
+					if (extracted.email && !data.email) {
+						data.email = extracted.email;
+						console.log('📧 EMAIL capturado automaticamente:', data.email);
+						saveInteractionLog({
+							type: 'email_captured_auto',
+							user_name: data.nome || 'Anônimo',
+							email: data.email,
+							note: 'Capturado automaticamente durante conversa'
+						});
+						shouldSendLead = true; // Email é obrigatório para enviar
+					}
+					
+					console.log('🔍 Verificando condições de envio:');
+					console.log('  - shouldSendLead:', shouldSendLead);
+					console.log('  - data.email:', data.email);
+					console.log('  - Condição satisfeita?', shouldSendLead && data.email);
+					
+					// Se capturou email (com ou sem telefone), envia o lead
+					if (shouldSendLead && data.email) {
+						loading = true;
+						
+						console.log('\n🚀 ========== ENVIANDO LEAD AUTOMATICAMENTE! ==========');
+						console.log('📊 Dados capturados:', {
+							nome: data.nome,
+							telefone: data.telefone || 'Não informado',
+							email: data.email,
+							interesse: data.interesse || text.substring(0, 200)
+						});
+						
+						try {
+							await sendLeadToComercial(
+								data.nome!,
+								data.telefone || 'Não informado',
+								data.email!,
+								data.interesse || text.substring(0, 200), // Usa a mensagem atual como interesse
+								history.join('\n')
+							);
+							
+							console.log('✅ sendLeadToComercial completou com sucesso!');
+						} catch (error) {
+							console.error('❌ Erro ao enviar lead:', error);
+						}
+						
+						await new Promise(resolve => setTimeout(resolve, 1000));
+						loading = false;
+						
+						addMessage(
+							'Perfeito, ' +
+								data.nome +
+								'! ✅\n\nRecebi suas informações e nosso time comercial vai analisar a conversa.\n\nEles entram em contato em breve!\n\nObrigado! 🙏'
+						);
+						step = 'finished';
+						console.log('🏁 Step mudado para: finished');
+						console.log('========== FIM DO ENVIO AUTOMÁTICO ==========\n');
+						return; // Sai da função para não processar a mensagem novamente
+					} else {
+						console.log('⚠️ Condições não satisfeitas para envio. Continuando conversa normal...');
+					}
+				} else {
+					console.log('ℹ️ Nenhum contato detectado nesta mensagem. Continuando conversa normal...');
+				}
+				
+				console.log('========== FIM DA AUTO-DETECÇÃO ==========\n');
+				
+				// Continua o fluxo normal da conversa
 				loading = true;
 				
 				await new Promise(resolve => setTimeout(resolve, 600));

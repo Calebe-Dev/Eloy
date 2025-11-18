@@ -172,7 +172,3 @@
 	{/if}
 </div>
 
-<style>
-	/* Estilos movidos para app.css */
-</style>
-

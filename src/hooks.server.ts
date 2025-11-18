@@ -15,16 +15,16 @@ export const handle: Handle = async ({ event, resolve }) => {
 	response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
 	response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
 	
-	// Content Security Policy (updated for self-hosted fonts)
+	// Content Security Policy (atualizado para APIs externas)
 	response.headers.set(
 		'Content-Security-Policy',
 		[
 			"default-src 'self'",
-			"font-src 'self'",
-			"style-src 'self' 'unsafe-inline'",
-			"script-src 'self' 'unsafe-inline'",
+			"font-src 'self' https://fonts.gstatic.com",
+			"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+			"script-src 'self' 'unsafe-inline' https://www.clarity.ms https://scripts.clarity.ms https://cdn.jsdelivr.net",
 			"img-src 'self' data: https:",
-			"connect-src 'self'",
+			"connect-src 'self' https://api.openai.com https://api.emailjs.com https://www.clarity.ms https://scripts.clarity.ms https://z.clarity.ms",
 			"frame-ancestors 'none'",
 			"base-uri 'self'",
 			"form-action 'self'"

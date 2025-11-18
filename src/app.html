@@ -5,9 +5,7 @@
 		
 		<!-- Favicons and App Icons -->
 		<link rel="icon" href="%sveltekit.assets%/favicon.ico" />
-		<link rel="apple-touch-icon" sizes="180x180" href="%sveltekit.assets%/apple-touch-icon.png" />
-		<link rel="icon" type="image/png" sizes="32x32" href="%sveltekit.assets%/favicon-32x32.png" />
-		<link rel="icon" type="image/png" sizes="16x16" href="%sveltekit.assets%/favicon-16x16.png" />
+		<link rel="icon" type="image/svg+xml" href="%sveltekit.assets%/favicon.svg" />
 		
 		<!-- Viewport and Mobile Optimization -->
 		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -47,6 +45,7 @@
 		
 		<!-- Security Headers -->
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://www.clarity.ms https://scripts.clarity.ms https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self' https://api.openai.com https://api.emailjs.com https://www.clarity.ms https://scripts.clarity.ms https://z.clarity.ms; base-uri 'self'; form-action 'self';" />
 		
 		<!-- Service Worker para cache (async com requestIdleCallback) -->
 		<script>

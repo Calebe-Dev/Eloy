@@ -74,6 +74,7 @@
 		"svelte"
 	],
 	"dependencies": {
+		"@emailjs/browser": "^4.4.1",
 		"resend": "^6.4.2"
 	}
 }
