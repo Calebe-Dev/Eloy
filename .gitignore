@@ -17,6 +17,8 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+# Local API secrets
+api/.env.local
 
 # Logs de leads
 /static/leads/
