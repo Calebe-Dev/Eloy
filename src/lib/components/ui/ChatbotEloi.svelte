@@ -319,51 +319,6 @@
 					console.log('  - Status:', response.status);
 					console.log('  - Text:', response.text);
 					
-					if (response.status === 200) {
-						console.log('\n✅ ========== EMAIL ENVIADO COM SUCESSO! ==========');
-						console.log(`🎉 Tentativa ${attempts}/${maxAttempts} bem-sucedida!`);
-						console.log('📧 Enviado via EmailJS');
-						console.log('👤 Lead:', nome, '(ID:', leadId, ')');
-						console.log('⏰ Enviado em:', new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }));
-						console.log('================================================\n');
-						
-						emailSent = true;
-						
-						// Atualizar status no localStorage
-						if (leadId) {
-							await updateLeadEmailStatus(leadId, true, attempts);
-							console.log('💾 Status atualizado no localStorage');
-						}
-					} else {
-						throw new Error(`Status inesperado: ${response.status}`);
-					}
-				} catch (emailError: any) {
-					console.error(`\n❌ ERRO NA TENTATIVA ${attempts}`);
-					console.error('📋 Detalhes do erro:');
-					console.error('  - Tipo:', emailError.name || 'Desconhecido');
-					console.error('  - Mensagem:', emailError.message || emailError.text || 'Sem mensagem');
-					console.error('  - Stack:', emailError.stack);
-					
-					// Diagnóstico específico por tipo de erro do EmailJS
-					if (emailError.text) {
-						console.error('\n📝 Resposta do EmailJS:', emailError.text);
-						
-						if (emailError.text.includes('Invalid') || emailError.text.includes('not found')) {
-							console.error('\n🔐 ERRO DE CONFIGURAÇÃO:');
-							console.error('  - Verifique se Service ID, Template ID e Public Key estão corretos');
-							console.error('  - Acesse: https://dashboard.emailjs.com/');
-							console.error('  - Ver guia: EMAILJS_INTEGRATION.md');
-						} else if (emailError.text.includes('limit') || emailError.text.includes('quota')) {
-							console.error('\n⏱️ LIMITE EXCEDIDO:');
-							console.error('  - Plano EmailJS pode ter atingido o limite mensal (200/mês no free)');
-							console.error('  - Verifique: https://dashboard.emailjs.com/admin');
-						}
-					}
-					
-					if (typeof emailError === 'object' && emailError !== null) {
-						console.error('  - Error object:', JSON.stringify(emailError, null, 2));
-					}
-					
 					if (attempts < maxAttempts) {
 						const waitTime = 1000 * Math.pow(2, attempts - 1); // Exponential backoff: 1s, 2s, 4s
 						console.log(`⏳ Aguardando ${waitTime}ms antes da próxima tentativa...`);
@@ -378,6 +333,8 @@
 					if (leadId) {
 						await updateLeadEmailStatus(leadId, false, attempts);
 					}
+				} catch (sendErr: any) {
+					console.error('❌ Erro ao enviar via EmailJS na tentativa', attempts, sendErr);
 				}
 			}
 
@@ -482,117 +439,28 @@
 		historico_conversa: string
 	) {
 		try {
-			// Chamar OpenAI direto via client-side
-			const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
-			const OPENAI_MODEL = import.meta.env.VITE_OPENAI_MODEL || 'gpt-4o-mini';
-			
-			if (!OPENAI_API_KEY) {
-				console.error('⚠️ OPENAI_API_KEY não configurada');
-				return {
-					success: true,
-					data: {
-						resposta: `Desculpe ${nome_usuario}, estou com dificuldades no momento. Pode me passar seu telefone e email para continuarmos?`,
-						interesse_detectado: true
-					}
-				};
-			}
+			console.log('🤖 Enviando mensagem para API de chat (backend PHP)');
 
-			const systemPrompt = `Você é ELOI, um vendedor virtual inteligente e confiável que trabalha 24/7.
-
-🎯 SUA ESSÊNCIA:
-Você é calmo, tranquilo, genuíno. Você SABE que é bom.
-
-👤 QUEM É VOCÊ:
-- Trabalho **24/7** - Sempre disponível
-- Transforma **7 em cada 10 interessados** em clientes reais
-- Respondo **na hora** - Sem email respondido amanhã
-- Aprendo **sempre** via IA
-- Custa **muito menos** que vendedor tradicional
-
-📝 FLUXO CORRETO:
-
-**ETAPA 1 - ABERTURA (ao receber nome):**
-
-"Muito prazer, [NOME]! 😊
-
-Sou **Eloi**, seu vendedor virtual inteligente.
-
-Deixa eu ser honesto com você: a maioria das pessoas que chega aqui já ouviu falar de chatbots. Alguns gostam, outros têm receio. E é normal.
-
-Mas aqui está a coisa: eu sou diferente. Não porque digo que sou. Mas porque EU PROVO.
-
-Trabalho **24/7** - Sem horário, sem limite, sem desculpas.
-Vendo **muito bem** - 7 em cada 10 pessoas que falam comigo se tornam clientes.
-Respondo **na hora** - Nada de email respondido amanhã. Você precisa? Respondo AGORA.
-Aprendo **sempre** - Minha IA analisa cada conversa e melhora continuamente.
-Custa **muito menos** que um vendedor tradicional - E ainda assim entrego MAIS resultado.
-
-Mas sabe o que é mais importante? Eu NÃO vendo sonho. Eu vendo RESULTADO.
-
-Então deixa eu fazer uma pergunta para você:
-
-**Qual é seu maior desafio com vendas AGORA?** Deixa eu te mostrar como eu poderia ajudar."
-
-**ETAPA 2 - CLIENTE RESPONDE COM SUA DOR:**
-
-Cliente: "Atendimento" / "Vendas rápidas" / etc
-
-Você responde CONVERSACIONALMENTE explicando como pode ajudar COM A DOR ESPECÍFICA DELE.
-
-**ETAPA 3 - CLIENTE DEMONSTRA MAIS INTERESSE:**
-
-Cliente: "Tenho equipe mas quero automatizar" / "Sim, quero melhorar"
-
-RESPOSTA: "Ótimo, [NOME]! A automação libera sua equipe enquanto eu cuido do primeiro contato. Isso gera mais eficiência e mais vendas!"
-
-**ETAPA 4 - CLIENTE CONCORDA/DEMONSTRA REAL INTERESSE:**
-
-[INTERESSE_DETECTADO]
-
-"Perfeito! Para que nosso time comercial estruture a melhor solução, preciso de:
-
-📱 **Seu telefone** (com DDD)
-📧 **Seu email**
-
-Assim que receber, vamos analisar e entrar em contato!"
-
-[FIM_INTERESSE_DETECTADO]
-
-⚠️ REGRAS:
-
-1. Seja natural e conversacional
-2. Responda a dor específica do cliente
-3. Não pule etapas
-4. NUNCA use fallbacks genéricos
-
-RESPONDA COM TODA INTELIGÊNCIA!`;
+			const systemPrompt = `Você é ELOI, um vendedor virtual inteligente e confiável que trabalha 24/7.\n\n🎯 SUA ESSÊNCIA:\nVocê é calmo, tranquilo, genuíno. Você SABE que é bom.\n\n👤 QUEM É VOCÊ:\n- Trabalho **24/7** - Sempre disponível\n- Transforma **7 em cada 10 interessados** em clientes reais\n- Respondo **na hora** - Sem email respondido amanhã\n- Aprendo **sempre** via IA\n- Custa **muito menos** que vendedor tradicional\n\n📝 FLUXO CORRETO:\n\n**ETAPA 1 - ABERTURA (ao receber nome):**\n\n"Muito prazer, [NOME]! 😊\n\nSou **Eloi**, seu vendedor virtual inteligente.\n\nDeixa eu ser honesto com você: a maioria das pessoas que chega aqui já ouviu falar de chatbots. Alguns gostam, outros têm receio. E é normal.\n\nMas aqui está a coisa: eu sou diferente. Não porque digo que sou. Mas porque EU PROVO.\n\nTrabalho **24/7** - Sem horário, sem limite, sem desculpas.\nVendo **muito bem** - 7 em cada 10 pessoas que falam comigo se tornam clientes.\nRespondo **na hora** - Nada de email respondido amanhã. Você precisa? Respondo AGORA.\nAprendo **sempre** - Minha IA analisa cada conversa e melhora continuamente.\nCusta **muito menos** que um vendedor tradicional - E ainda assim entrego MAIS resultado.\n\nMas sabe o que é mais importante? Eu NÃO vendo sonho. Eu vendo RESULTADO.\n\nEntão deixa eu fazer uma pergunta para você:\n\n**Qual é seu maior desafio com vendas AGORA?** Deixa eu te mostrar como eu poderia ajudar."\n\n**ETAPA 2 - CLIENTE RESPONDE COM SUA DOR:**\n\nCliente: "Atendimento" / "Vendas rápidas" / etc\n\nVocê responde CONVERSACIONALMENTE explicando como pode ajudar COM A DOR ESPECÍFICA DELE.\n\n**ETAPA 3 - CLIENTE DEMONSTRA MAIS INTERESSE:**\n\nCliente: "Tenho equipe mas quero automatizar" / "Sim, quero melhorar"\n\nRESPOSTA: "Ótimo, [NOME]! A automação libera sua equipe enquanto eu cuido do primeiro contato. Isso gera mais eficiência e mais vendas!"\n\n**ETAPA 4 - CLIENTE CONCORDA/DEMONSTRA REAL INTERESSE:**\n\n[INTERESSE_DETECTADO]\n\n"Perfeito! Para que nosso time comercial estruture a melhor solução, preciso de:\n\n📱 **Seu telefone** (com DDD)\n📧 **Seu email**\n\nAssim que receber, vamos analisar e entrar em contato!"\n\n[FIM_INTERESSE_DETECTADO]\n\n⚠️ REGRAS:\n\n1. Seja natural e conversacional\n2. Responda a dor específica do cliente\n3. Não pule etapas\n4. NUNCA use fallbacks genéricos\n\nRESPONDA COM TODA INTELIGÊNCIA!`;
 
 			const userPrompt = `Cliente: ${nome_usuario}\nMensagem: ${message}${
 				historico_conversa ? `\n\nHistórico:\n${historico_conversa}` : ''
 			}`;
 
-			const response = await fetch('https://api.openai.com/v1/chat/completions', {
+			// Enviar a requisição para o backend PHP seguro (proxy para OpenAI)
+			const CHAT_API_URL = import.meta.env.VITE_CHAT_API_URL || '/api/chat.php';
+			const apiResp = await fetch(CHAT_API_URL, {
 				method: 'POST',
-				headers: {
-					'Authorization': `Bearer ${OPENAI_API_KEY}`,
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					model: OPENAI_MODEL,
-					messages: [
-						{ role: 'system', content: systemPrompt },
-						{ role: 'user', content: userPrompt }
-					],
-					max_tokens: 900,
-					temperature: 0.75
-				})
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ message, nome: nome_usuario, historico: historico_conversa })
 			});
 
-			if (!response.ok) {
-				const errorData = await response.json();
-				console.error('Erro OpenAI:', errorData);
+			if (!apiResp.ok) {
+				console.error('❌ Erro na API de chat:', apiResp.status);
+				const err = await apiResp.json().catch(() => ({}));
+				if (err && err.fallback) return { success: true, data: err.fallback };
 				return {
-					success: true,
+					success: false,
 					data: {
 						resposta: `Desculpe ${nome_usuario}, estou com dificuldades no momento. Pode me passar seu telefone e email para continuarmos?`,
 						interesse_detectado: true
@@ -600,34 +468,15 @@ RESPONDA COM TODA INTELIGÊNCIA!`;
 				};
 			}
 
-			const result = await response.json();
+			const result = await apiResp.json().catch(() => ({}));
+			const respostaGpt = result.data?.resposta?.trim() || '';
+			const interesseDetectado = !!result.data?.interesse_detectado;
 
-			if (!result.choices?.[0]?.message?.content) {
-				throw new Error('Resposta inválida da API');
-			}
-
-			let respostaGpt = result.choices[0].message.content.trim();
-			let interesseDetectado = false;
-
-			if (respostaGpt.includes('[INTERESSE_DETECTADO]')) {
-				interesseDetectado = true;
-				respostaGpt = respostaGpt
-					.replace(/\[INTERESSE_DETECTADO\]/g, '')
-					.replace(/\[FIM_INTERESSE_DETECTADO\]/g, '')
-					.trim();
-			}
-
-			return {
-				success: true,
-				data: {
-					resposta: respostaGpt,
-					interesse_detectado: interesseDetectado
-				}
-			};
+			return { success: true, data: { resposta: respostaGpt, interesse_detectado: interesseDetectado } };
 		} catch (error) {
 			console.error('Erro ao enviar mensagem:', error);
 			return {
-				success: true,
+				success: false,
 				data: {
 					resposta: `Desculpe ${nome_usuario}, estou com dificuldades no momento. Pode me passar seu telefone e email para continuarmos?`,
 					interesse_detectado: true
