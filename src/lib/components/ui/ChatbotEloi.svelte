@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { chatbotReady } from '$lib/stores/chatbot.js';
-	import emailjs from '@emailjs/browser';
 
 	type Step = 'name' | 'chat' | 'waiting_phone' | 'waiting_email' | 'finished';
 	
@@ -217,167 +216,45 @@
 		});
 
 		try {
-			console.log('\n🔍 ========== INÍCIO DO PROCESSO DE ENVIO DE EMAIL ==========');
+			console.log('\n🔍 ========== INÍCIO DO PROCESSO DE ENVIO DE EMAIL (PHP Backend) ==========');
 			console.log('⏰ Timestamp:', new Date().toISOString());
 			console.log('📧 Lead ID:', leadId);
-			
-			// Configurações do EmailJS (via variáveis de ambiente)
-			const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-			const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-			const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
-			
-			// Verificação detalhada de variáveis de ambiente
-			console.log('🔑 Verificando variáveis de ambiente...');
-			console.log('  - VITE_EMAILJS_SERVICE_ID:', EMAILJS_SERVICE_ID ? `✅ Configurado (${EMAILJS_SERVICE_ID})` : '❌ NÃO CONFIGURADA');
-			console.log('  - VITE_EMAILJS_TEMPLATE_ID:', EMAILJS_TEMPLATE_ID ? `✅ Configurado (${EMAILJS_TEMPLATE_ID})` : '❌ NÃO CONFIGURADA');
-			console.log('  - VITE_EMAILJS_PUBLIC_KEY:', EMAILJS_PUBLIC_KEY ? `✅ Configurada (${EMAILJS_PUBLIC_KEY.substring(0, 8)}...)` : '❌ NÃO CONFIGURADA');
-			
-			if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
-				console.error('\n❌ ERRO CRÍTICO: Configurações do EmailJS não encontradas!');
-				console.error('� Ação necessária:');
-				console.error('  1. Criar arquivo .env na raiz do projeto');
-				console.error('  2. Adicionar as seguintes variáveis:');
-				console.error('     VITE_EMAILJS_SERVICE_ID=seu_service_id');
-				console.error('     VITE_EMAILJS_TEMPLATE_ID=seu_template_id');
-				console.error('     VITE_EMAILJS_PUBLIC_KEY=sua_public_key');
-				console.error('  3. Obter chaves em: https://dashboard.emailjs.com/');
-				console.error('  4. Reiniciar o servidor de desenvolvimento');
-				console.error('  5. Ver guia completo: EMAILJS_INTEGRATION.md');
-				console.log('\n✅ Lead capturado (apenas localStorage):', leadData);
-				console.log('📋 Exporte os leads digitando: exportLeads()');
-				console.log('========== FIM (SEM ENVIO DE EMAIL) ==========\n');
-				
-				// Atualizar status como falha por falta de configuração
-				if (leadId) {
-					await updateLeadEmailStatus(leadId, false, 0);
-				}
-				
-				// Expor funções globais para exportar leads
-				(window as any).exportLeads = exportLeadsToJSON;
-				(window as any).exportInteractions = exportInteractionsToJSON;
-				(window as any).viewStats = () => {
-					const leads = JSON.parse(localStorage.getItem('eloi_leads') || '[]');
-					const interactions = JSON.parse(localStorage.getItem('eloi_interactions') || '[]');
-					console.log('📊 ESTATÍSTICAS ELOI:');
-					console.log(`  - Total de leads: ${leads.length}`);
-					console.log(`  - Total de interações: ${interactions.length}`);
-					console.log(`  - Leads com email enviado: ${leads.filter((l: any) => l.email_sent).length}`);
-					console.log(`  - Leads sem email: ${leads.filter((l: any) => !l.email_sent).length}`);
-				};
-				return false; // ⚠️ Retorna false quando não tem credenciais
-			}
 
-			// 🔧 Inicializar EmailJS com a Public Key
-			console.log('\n🔧 Inicializando EmailJS...');
-			try {
-				emailjs.init(EMAILJS_PUBLIC_KEY);
-				console.log('✅ EmailJS inicializado com sucesso!');
-			} catch (initError: any) {
-				console.error('❌ Erro ao inicializar EmailJS:', initError);
-				throw new Error('Falha na inicialização do EmailJS: ' + initError.message);
-			}
-
-			// Preparar parâmetros do template
-			const telefone_limpo = telefone.replace(/\D/g, '');
-			const templateParams = {
-				nome,
-				telefone,
-				telefone_limpo,
-				email,
-				interesse: contexto,
-				historico,
-				data_hora: leadData.data_hora,
-				lead_id: leadId
+			const payload = {
+				name: nome,
+				email: email,
+				phone: telefone,
+				message: historico,
+				interest: contexto
 			};
 
-			// 🔥 REDUNDÂNCIA 2: Múltiplas tentativas de envio (retry com exponential backoff)
-			let emailSent = false;
-			let attempts = 0;
-			const maxAttempts = 3;
+			console.log('📤 Enviando dados para o backend PHP:', payload);
 
-			while (!emailSent && attempts < maxAttempts) {
-				attempts++;
-				console.log(`\n📧 ========== TENTATIVA ${attempts}/${maxAttempts} ==========`);
-				console.log('⏰ Timestamp tentativa:', new Date().toISOString());
+			const response = await fetch('/api/send-email.php', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(payload)
+			});
 
-				try {
-					console.log('📤 Enviando email via EmailJS...');
-					console.log('  - Service ID:', EMAILJS_SERVICE_ID);
-					console.log('  - Template ID:', EMAILJS_TEMPLATE_ID);
-					console.log('  - Dados:', { nome, telefone, email, interesse: contexto });
-					
-					const startTime = performance.now();
-					const response = await emailjs.send(
-						EMAILJS_SERVICE_ID,
-						EMAILJS_TEMPLATE_ID,
-						templateParams
-					);
-					const endTime = performance.now();
-					const duration = (endTime - startTime).toFixed(2);
-					
-					console.log(`📊 Email enviado em ${duration}ms`);
-					console.log('  - Status:', response.status);
-					console.log('  - Text:', response.text);
-					
-					if (attempts < maxAttempts) {
-						const waitTime = 1000 * Math.pow(2, attempts - 1); // Exponential backoff: 1s, 2s, 4s
-						console.log(`⏳ Aguardando ${waitTime}ms antes da próxima tentativa...`);
-						await new Promise(resolve => setTimeout(resolve, waitTime));
-					} else {
-						console.error('\n❌ Todas as tentativas esgotadas!');
-						console.log('💾 Mas o lead está salvo no localStorage!');
-						console.log('📋 Para exportar: exportLeads()');
-					}
-					
-					// Atualizar status de tentativas mesmo em falha
-					if (leadId) {
-						await updateLeadEmailStatus(leadId, false, attempts);
-					}
-				} catch (sendErr: any) {
-					console.error('❌ Erro ao enviar via EmailJS na tentativa', attempts, sendErr);
-				}
-			}
+			const responseData = await response.json();
 
-			if (!emailSent) {
-				console.error('\n❌ ========== FALHA NO ENVIO DE EMAIL ==========');
-				console.error('📊 Resumo:');
-				console.error(`  - Tentativas realizadas: ${attempts}/${maxAttempts}`);
-				console.error('  - Status final: FALHOU');
-				console.error('  - Lead ID:', leadId);
-				console.error('  - Nome:', nome);
-				console.error('\n🔧 PRÓXIMOS PASSOS:');
-				console.error('  1. Verifique os erros acima para diagnóstico');
-				console.error('  2. Lead SALVO no localStorage (ID:', leadId, ')');
-				console.error('  3. Digite exportLeads() para exportar manualmente');
-				console.error('  4. Ver guia de configuração: EMAILJS_INTEGRATION.md');
-				console.error('================================================\n');
-				
-				// Atualizar com falha
+			if (response.ok && responseData.status === 'success') {
+				console.log('✅ Email enviado com sucesso via backend PHP!');
 				if (leadId) {
-					await updateLeadEmailStatus(leadId, false, attempts);
-					console.log('💾 Status de falha salvo no localStorage');
+					await updateLeadEmailStatus(leadId, true, 1);
 				}
+				return true;
 			} else {
-				console.log('\n✅ Processo finalizado com SUCESSO!');
-				console.log('========== FIM DO PROCESSO ==========\n');
+				console.error('❌ Erro ao enviar email via backend PHP:', responseData.message);
+				if (leadId) {
+					await updateLeadEmailStatus(leadId, false, 1);
+				}
+				return false;
 			}
-
-			// Expor funções globais
-			(window as any).exportLeads = exportLeadsToJSON;
-			(window as any).exportInteractions = exportInteractionsToJSON;
-			(window as any).viewStats = () => {
-				const leads = JSON.parse(localStorage.getItem('eloi_leads') || '[]');
-				const interactions = JSON.parse(localStorage.getItem('eloi_interactions') || '[]');
-				console.log('📊 ESTATÍSTICAS ELOI:');
-				console.log(`  - Total de leads: ${leads.length}`);
-				console.log(`  - Total de interações: ${interactions.length}`);
-				console.log(`  - Leads com email enviado: ${leads.filter((l: any) => l.email_sent).length}`);
-				console.log(`  - Leads sem email: ${leads.filter((l: any) => !l.email_sent).length}`);
-			};
-
-			return emailSent;
 		} catch (error: any) {
-			console.error('\n❌ ERRO CRÍTICO NO PROCESSO DE ENVIO:');
+			console.error('\n❌ ERRO CRÍTICO NO PROCESSO DE ENVIO (PHP Backend):');
 			console.error('  - Tipo:', error?.name || 'Desconhecido');
 			console.error('  - Mensagem:', error?.message || 'Sem mensagem');
 			console.error('  - Stack:', error?.stack);
@@ -441,11 +318,9 @@
 		try {
 			console.log('🤖 Enviando mensagem para API de chat (backend PHP)');
 
-			const systemPrompt = `Você é ELOI, um vendedor virtual inteligente e confiável que trabalha 24/7.\n\n🎯 SUA ESSÊNCIA:\nVocê é calmo, tranquilo, genuíno. Você SABE que é bom.\n\n👤 QUEM É VOCÊ:\n- Trabalho **24/7** - Sempre disponível\n- Transforma **7 em cada 10 interessados** em clientes reais\n- Respondo **na hora** - Sem email respondido amanhã\n- Aprendo **sempre** via IA\n- Custa **muito menos** que vendedor tradicional\n\n📝 FLUXO CORRETO:\n\n**ETAPA 1 - ABERTURA (ao receber nome):**\n\n"Muito prazer, [NOME]! 😊\n\nSou **Eloi**, seu vendedor virtual inteligente.\n\nDeixa eu ser honesto com você: a maioria das pessoas que chega aqui já ouviu falar de chatbots. Alguns gostam, outros têm receio. E é normal.\n\nMas aqui está a coisa: eu sou diferente. Não porque digo que sou. Mas porque EU PROVO.\n\nTrabalho **24/7** - Sem horário, sem limite, sem desculpas.\nVendo **muito bem** - 7 em cada 10 pessoas que falam comigo se tornam clientes.\nRespondo **na hora** - Nada de email respondido amanhã. Você precisa? Respondo AGORA.\nAprendo **sempre** - Minha IA analisa cada conversa e melhora continuamente.\nCusta **muito menos** que um vendedor tradicional - E ainda assim entrego MAIS resultado.\n\nMas sabe o que é mais importante? Eu NÃO vendo sonho. Eu vendo RESULTADO.\n\nEntão deixa eu fazer uma pergunta para você:\n\n**Qual é seu maior desafio com vendas AGORA?** Deixa eu te mostrar como eu poderia ajudar."\n\n**ETAPA 2 - CLIENTE RESPONDE COM SUA DOR:**\n\nCliente: "Atendimento" / "Vendas rápidas" / etc\n\nVocê responde CONVERSACIONALMENTE explicando como pode ajudar COM A DOR ESPECÍFICA DELE.\n\n**ETAPA 3 - CLIENTE DEMONSTRA MAIS INTERESSE:**\n\nCliente: "Tenho equipe mas quero automatizar" / "Sim, quero melhorar"\n\nRESPOSTA: "Ótimo, [NOME]! A automação libera sua equipe enquanto eu cuido do primeiro contato. Isso gera mais eficiência e mais vendas!"\n\n**ETAPA 4 - CLIENTE CONCORDA/DEMONSTRA REAL INTERESSE:**\n\n[INTERESSE_DETECTADO]\n\n"Perfeito! Para que nosso time comercial estruture a melhor solução, preciso de:\n\n📱 **Seu telefone** (com DDD)\n📧 **Seu email**\n\nAssim que receber, vamos analisar e entrar em contato!"\n\n[FIM_INTERESSE_DETECTADO]\n\n⚠️ REGRAS:\n\n1. Seja natural e conversacional\n2. Responda a dor específica do cliente\n3. Não pule etapas\n4. NUNCA use fallbacks genéricos\n\nRESPONDA COM TODA INTELIGÊNCIA!`;
+			const systemPrompt = `Você é ELOI, um vendedor virtual que responde de forma útil, cordial e objetiva. Mantenha o tom profissional e extraia sinais de interesse do usuário.`;
 
-			const userPrompt = `Cliente: ${nome_usuario}\nMensagem: ${message}${
-				historico_conversa ? `\n\nHistórico:\n${historico_conversa}` : ''
-			}`;
+			const userPrompt = `Cliente: ${nome_usuario}\nMensagem: ${message}${historico_conversa ? `\n\nHistórico:\n${historico_conversa}` : ''}`;
 
 			// Enviar a requisição para o backend PHP seguro (proxy para OpenAI)
 			const CHAT_API_URL = import.meta.env.VITE_CHAT_API_URL || '/api/chat.php';
@@ -643,9 +518,9 @@
 						
 						loading = false;
 						addMessage(
-							'Perfeito, ' +
-								data.nome +
-								'! ✅\n\nRecebi todas as suas informações. Nosso time comercial vai analisar e entrar em contato em breve!\n\nObrigado! 🙏'
+							'Perfeito, '
+								+ data.nome
+								+ '! ✅\n\nRecebi todas as suas informações. Nosso time comercial vai analisar e entrar em contato em breve!\n\nObrigado! 🙏'
 						);
 						step = 'finished';
 					} else {
@@ -708,9 +583,9 @@
 						loading = false;
 						
 						addMessage(
-							'Excelente, ' +
-								data.nome +
-								'! ✅\n\nRecebi seu telefone e email. Nosso time comercial vai analisar seu perfil e entrar em contato em breve!\n\nObrigado! 🙏'
+							'Excelente, '
+								+ data.nome
+								+ '! ✅\n\nRecebi seu telefone e email. Nosso time comercial vai analisar seu perfil e entrar em contato em breve!\n\nObrigado! 🙏'
 						);
 						step = 'finished';
 					} else {
@@ -783,9 +658,9 @@
 					loading = false;
 					
 					addMessage(
-						'Excelente, ' +
-							data.nome +
-							'! ✅\n\nSeu interesse foi registrado e nosso time comercial vai analisar seu perfil.\n\nEles entram em contato com você em breve!\n\nObrigado! 🙏'
+						'Excelente, '
+							+ data.nome
+							+ '! ✅\n\nSeu interesse foi registrado e nosso time comercial vai analisar seu perfil.\n\nEles entram em contato com você em breve!\n\nObrigado! 🙏'
 					);
 					step = 'finished';
 				} else if (emailAttempts >= 3) {
@@ -816,9 +691,9 @@
 					loading = false;
 					
 					addMessage(
-						'Perfeito, ' +
-							data.nome +
-							'! ✅\n\nSuas informações foram registradas e nosso time comercial vai analisar a conversa.\n\nEles entram em contato com você em breve!\n\nObrigado! 🙏'
+						'Perfeito, '
+							+ data.nome
+							+ '! ✅\n\nSuas informações foram registradas e nosso time comercial vai analisar a conversa.\n\nEles entram em contato com você em breve!\n\nObrigado! 🙏'
 					);
 					step = 'finished';
 				} else {
@@ -923,10 +798,10 @@
 						
 						try {
 							await sendLeadToComercial(
-								data.nome!,
-								data.telefone || 'Não informado',
-								data.email!,
-								data.interesse || text.substring(0, 200),
+									data.nome!,
+									data.telefone || 'Não informado',
+									data.email!,
+									data.interesse || text.substring(0, 200),
 								history.join('\n')
 							);
 							
@@ -939,9 +814,9 @@
 						loading = false;
 						
 						addMessage(
-							'Perfeito, ' +
-								data.nome +
-								'! ✅\n\nRecebi suas informações e nosso time comercial vai analisar a conversa.\n\nEles entram em contato em breve!\n\nObrigado! 🙏'
+							'Perfeito, '
+								+ data.nome
+								+ '! ✅\n\nRecebi suas informações e nosso time comercial vai analisar a conversa.\n\nEles entram em contato em breve!\n\nObrigado! 🙏'
 						);
 						step = 'finished';
 						console.log('🏁 Step mudado para: finished');
@@ -954,7 +829,7 @@
 					console.log('   Motivo: shouldSendLead=' + shouldSendLead + ', email=' + !!data.email);
 				}
 				
-				console.log('ℹ️ Continuando fluxo normal da conversa...');
+				console.log('ℹ️Continuing fluxo normal da conversa...');
 				console.log('========== FIM DA AUTO-DETECÇÃO ==========\n');
 				
 				// 🔄 Continua o fluxo normal da conversa (somente se não enviou lead)
