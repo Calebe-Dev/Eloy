@@ -145,16 +145,6 @@
 		</div>
 
 		<!-- Input Field -->
-		<div class="bg-white px-4 pb-5 pt-3">
-			<div class="relative">
-				<input
-					type="text"
-					placeholder="Digite sua mensagem....."
-					class="w-full px-5 py-3.5 bg-white border border-gray-300 rounded-full text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-					style="height: 50px;"
-				/>
-			</div>
-		</div>
 		</div>
 	</div>
 	
